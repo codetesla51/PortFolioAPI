@@ -1,106 +1,105 @@
 <?php
+require __DIR__ . "../../models/Skills.php";
 require_once "./autoader.php";
-use Model\Projects;
 use Helpers\decrypt;
 use DB\DB;
-class ProjectController
+
+class SkillsController
 {
-  private $ProjectModel;
+  private $skillsModel;
   private $decrypt;
   private $DB;
   public function __construct()
   {
-    $this->ProjectModel = new Projects();
+    $this->skillsModel = new Skills();
     $this->decrypt = new Decrypt();
     $this->DB = (new DB())->connect();
   }
 
   public function store(): void
   {
-    // Retrieve the API key from headers
     $headers = getallheaders();
     $userKey = $headers["API-Key"] ?? null;
 
+    // Check for API key
     if (!$userKey) {
       http_response_code(401); // Unauthorized
       echo json_encode(["error" => "API key is required"]);
       return;
     }
 
-    // Verify API key
+    // Validate API key
     if (!$this->isValidUserKey($userKey)) {
       http_response_code(403); // Forbidden
       echo json_encode(["error" => "Invalid API key"]);
       return;
     }
 
-    // Decode incoming data
+    // Parse input data
     $data = json_decode(file_get_contents("php://input"), true);
+    $data["skill_name"] = $data["skill_name"] ?? "Untitled";
+    $data["experience_level"] = $data["experience_level"] ?? "Beginner";
+    $data["years_of_experience"] = $data["years_of_experience"] ?? 0;
+    $data["description"] = $data["description"] ?? "No description";
+        $data["user_key"] = $userKey;
 
-    $data["title"] = $data["title"] ?? "Untitled Project";
-    $data["image"] = $data["image"] ?? null;
-    $data["description"] = $data["description"] ?? null;
-    $data["tech_stack"] = isset($data["tech_stack"])
-      ? json_encode($data["tech_stack"])
-      : null;
-    $data["start_date"] = $data["start_date"] ?? null;
-    $data["finish_date"] = $data["finish_date"] ?? null;
-    $data["user_key"] = $userKey;
-    $data["github_link"] = $data["github_link"] ?? null;
-    $data["live_link"] = $data["live_link"] ?? null;
 
-    if ($this->ProjectModel->create($data)) {
-      echo json_encode(["message" => "Project created successfully"]);
+    // Validate experience level
+    $validExperienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
+    if (!in_array($data["experience_level"], $validExperienceLevels, true)) {
+      http_response_code(400); // Bad Request
+      echo json_encode(["error" => "Invalid experience_level value"]);
+      return;
+    }
+
+    // Attempt to create the skill
+    if ($this->skillsModel->create($data)) {
+      echo json_encode(["message" => "New Skill added successfully"]);
     } else {
       http_response_code(500); // Internal Server Error
-      echo json_encode(["error" => "Failed to create project"]);
+      echo json_encode(["error" => "Failed to add skill"]);
     }
   }
-
   public function update(int $id): void
   {
-    // Retrieve the API key from headers
     $headers = getallheaders();
     $userKey = $headers["API-Key"] ?? null;
 
     if (!$userKey) {
-      http_response_code(401); // Unauthorized
+      http_response_code(401);
       echo json_encode(["error" => "API key is required"]);
       return;
     }
 
-    // Verify API key
+    // Validate API key
     if (!$this->isValidUserKey($userKey)) {
       http_response_code(403); // Forbidden
       echo json_encode(["error" => "Invalid API key"]);
       return;
     }
 
-    // Decode incoming data
+    // Parse input data
     $data = json_decode(file_get_contents("php://input"), true);
+    $data["skill_name"] = $data["skill_name"] ?? "Untitled";
+    $data["experience_level"] = $data["experience_level"] ?? "Beginner";
+    $data["years_of_experience"] = $data["years_of_experience"] ?? 0;
+    $data["description"] = $data["description"] ?? "No description";
 
-    // Validate and sanitize input data
-    $data["title"] = $data["title"] ?? "Untitled Project";
-    $data["image"] = $data["image"] ?? null;
-    $data["description"] = $data["description"] ?? null;
-    $data["tech_stack"] = isset($data["tech_stack"])
-      ? json_encode($data["tech_stack"])
-      : null;
-    $data["start_date"] = $data["start_date"] ?? null;
-    $data["finish_date"] = $data["finish_date"] ?? null;
-    $data["user_key"] = $userKey;
-    $data["github_link"] = $data["github_link"] ?? null;
-    $data["live_link"] = $data["live_link"] ?? null;
+    // Validate experience level
+    $validExperienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
+    if (!in_array($data["experience_level"], $validExperienceLevels, true)) {
+      http_response_code(400); // Bad Request
+      echo json_encode(["error" => "Invalid experience_level value"]);
+      return;
+    }
 
-    // Perform the update
-    if ($this->ProjectModel->update($data, $id, $userKey)) {
-      echo json_encode(["message" => "Project updated successfully"]);
+    if ($this->skillsModel->update($data, $id,$userKey)) {
+      echo json_encode(["message" => "Updated Skill successfully"]);
     } else {
-      http_response_code(500); // Internal Server Error
-      echo json_encode(["error" => "Failed to update project"]);
+      http_response_code(500);
+      echo json_encode(["error" => "Failed to Update skill"]);
     }
   }
-
   public function index(): void
   {
     // Retrieve the API key from headers
@@ -113,7 +112,7 @@ class ProjectController
       return;
     }
 
-    $projects = $this->ProjectModel->fetchByUserKey($userKey);
+    $projects = $this->skillsModel->findAll($userKey);
     echo json_encode($projects);
   }
 
@@ -137,13 +136,13 @@ class ProjectController
     }
 
     // Fetch project by ID
-    $project = $this->ProjectModel->fetchId($id, $userKey);
+    $project = $this->skillsModel->findById($id, $userKey);
     if ($project) {
       echo json_encode($project);
     } else {
       http_response_code(400); // Bad Request
       echo json_encode([
-        "error" => "Project not found",
+        "error" => "skill not found",
       ]);
     }
   }
@@ -167,11 +166,11 @@ class ProjectController
       return;
     }
 
-    if ($this->ProjectModel->delete($id)) {
-      echo json_encode(["message" => "Project deleted successfully"]);
+    if ($this->skillsModel->delete($id)) {
+      echo json_encode(["message" => "skill deleted successfully"]);
     } else {
       http_response_code(500); // Internal Server Error
-      echo json_encode(["error" => "Failed to delete project"]);
+      echo json_encode(["error" => "Failed to delete skill"]);
     }
   }
   public function isValidUserKey(string $userKey): bool

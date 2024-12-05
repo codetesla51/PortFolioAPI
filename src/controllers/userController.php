@@ -1,15 +1,20 @@
 <?php
-require __DIR__ . "../../models/User.php";
+namespace Controller;
+require_once "./autoader.php";
+use Model\User;
+use Helpers\encrypt;
 class UserController
 {
   private string $name;
   private string $password;
   private $userModel;
+  private $encrypt;
   public function __construct(string $name, string $password)
   {
     $this->name = $name;
     $this->password = $password;
     $this->userModel = new User();
+    $this->encrypt = new Encrypt();
   }
   public function Validate(): array
   {
@@ -31,7 +36,7 @@ class UserController
     }
     $hashedPassword = password_hash($this->password, PASSWORD_BCRYPT);
     $rawAPIkey = bin2hex(random_bytes(16));
-    $EncrypredAPIKey = $this->EncryptKey($rawAPIkey);
+    $EncrypredAPIKey = $this->encrypt->EncryptKey($rawAPIkey);
     $insrted = $this->userModel->CreateUser(
       $this->name,
       $hashedPassword,
@@ -45,57 +50,5 @@ class UserController
     } else {
       return ["status" => "error", "message" => "Failed to register user"];
     }
-  }
-  public function EncryptKey(string $key): string
-  {
-    $cipherMethod = "AES-256-CBC";
-
-    $ivLength = openssl_cipher_iv_length($cipherMethod);
-    $iv = openssl_random_pseudo_bytes($ivLength);
-
-    $encryptionKey = "usman";
-
-    $encryptedData = openssl_encrypt(
-      $key,
-      $cipherMethod,
-      $encryptionKey,
-      0,
-      $iv
-    );
-
-    if ($encryptedData === false) {
-      throw new Exception("API key encryption failed");
-    }
-
-    $encryptedDataWithIv = base64_encode($encryptedData . "::" . $iv);
-    return $encryptedDataWithIv;
-  }
-
-  public function DecryptKey(string $key): string
-  {
-    $parts = explode("::", base64_decode($key), 2);
-
-    if (count($parts) !== 2) {
-      throw new Exception("Invalid encrypted data format");
-    }
-
-    [$encryptedData, $iv] = $parts;
-
-    $cipherMethod = "AES-256-CBC";
-    $encryptionKey = "usman";
-
-    $decrypted = openssl_decrypt(
-      $encryptedData,
-      $cipherMethod,
-      $encryptionKey,
-      0,
-      $iv
-    );
-
-    if ($decrypted === false) {
-      throw new Exception("Decryption failed");
-    }
-
-    return $decrypted;
   }
 }

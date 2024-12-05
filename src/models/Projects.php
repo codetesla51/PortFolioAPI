@@ -1,6 +1,8 @@
 <?php
-use DB\DB;
+namespace Model;
 require_once "./autoader.php";
+use DB\DB;
+use PDO;
 class Projects
 {
   private $table = "projects";
@@ -14,14 +16,25 @@ class Projects
 
   public function create(array $data): bool
   {
-    $query = "INSERT INTO $this->table
-            (title, image, description, tech_stack, start_date, finish_date, github_link, live_link, user_key) 
+    // Get the next project_id for the given user_key
+    $query = "SELECT COALESCE(MAX(project_id), 0) + 1 AS next_id 
+              FROM {$this->table} 
+              WHERE user_key = :user_key";
+    $stmt = $this->DB->prepare($query);
+    $stmt->bindParam(":user_key", $data["user_key"]);
+    $stmt->execute();
+    $nextProjectId = $stmt->fetchColumn();
+
+    // Insert the new project with the calculated project_id
+    $query = "INSERT INTO {$this->table}
+            (project_id, title, image, description, tech_stack, start_date, finish_date, github_link, live_link, user_key) 
             VALUES 
-            (:title, :image, :description, :tech_stack, :start_date, :finish_date, :github_link, :live_link, :user_key)";
+            (:project_id, :title, :image, :description, :tech_stack, :start_date, :finish_date, :github_link, :live_link, :user_key)";
 
     $stmt = $this->DB->prepare($query);
 
     // Bind parameters
+    $stmt->bindParam(":project_id", $nextProjectId);
     $stmt->bindParam(":title", $data["title"]);
     $stmt->bindParam(":image", $data["image"]);
     $stmt->bindParam(":description", $data["description"]);
@@ -35,19 +48,18 @@ class Projects
     return $stmt->execute();
   }
 
-  public function update(array $data, int $id): bool
+  public function update(array $data, int $projectId, string $userKey): bool
   {
-    $query = "UPDATE $this->table SET 
-            title = :title, 
-            image = :image, 
-            description = :description, 
-            tech_stack = :tech_stack, 
-            start_date = :start_date, 
-            finish_date = :finish_date, 
-            github_link = :github_link, 
-            live_link = :live_link, 
-            user_key = :user_key 
-            WHERE id = :id";
+    $query = "UPDATE {$this->table} SET 
+              title = :title, 
+              image = :image, 
+              description = :description, 
+              tech_stack = :tech_stack, 
+              start_date = :start_date, 
+              finish_date = :finish_date, 
+              github_link = :github_link, 
+              live_link = :live_link
+              WHERE project_id = :project_id AND user_key = :user_key";
 
     $stmt = $this->DB->prepare($query);
 
@@ -60,88 +72,53 @@ class Projects
     $stmt->bindParam(":finish_date", $data["finish_date"]);
     $stmt->bindParam(":github_link", $data["github_link"]);
     $stmt->bindParam(":live_link", $data["live_link"]);
-    $stmt->bindParam(":user_key", $data["user_key"]);
-    $stmt->bindParam(":id", $id);
+    $stmt->bindParam(":project_id", $projectId, PDO::PARAM_INT);
+    $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
 
-    return $stmt->execute();
+    if (!$stmt->execute()) {
+      throw new RuntimeException("Failed to execute the update query.");
+    }
+
+    return true;
   }
 
   public function fetchByUserKey(string $userKey): array
   {
-    $query = "SELECT * FROM $this->table WHERE user_key = :user_key";
+    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key";
 
     $stmt = $this->DB->prepare($query);
-    $stmt->bindParam(":user_key", $userKey);
-    $stmt->execute();
+    $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($stmt->execute()) {
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    return [];
   }
 
-  public function fetchId(int $id): array | false
+  public function fetchId(int $projectId, string $userKey): array|false
   {
-    $query = "SELECT * FROM $this->table WHERE id = :id";
+    $query = "SELECT * FROM {$this->table} WHERE project_id = :project_id AND user_key = :user_key";
 
     $stmt = $this->DB->prepare($query);
-    $stmt->bindParam(":id", $id);
-    $stmt->execute();
+    $stmt->bindParam(":project_id", $projectId, PDO::PARAM_INT);
+    $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
 
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-  }
-
-  public function delete(int $id): bool
-  {
-    $query = "DELETE FROM $this->table WHERE id = :id";
-
-    $stmt = $this->DB->prepare($query);
-    $stmt->bindParam(":id", $id);
-
-    return $stmt->execute();
-  }
-  public function DecryptKey(string $key): string
-  {
-    $parts = explode("::", base64_decode($key), 2);
-
-    if (count($parts) !== 2) {
-      throw new Exception("Invalid encrypted data format");
+    if ($stmt->execute()) {
+      return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
-    [$encryptedData, $iv] = $parts;
-
-    $cipherMethod = "AES-256-CBC";
-    $encryptionKey = "usman";
-
-    $decrypted = openssl_decrypt(
-      $encryptedData,
-      $cipherMethod,
-      $encryptionKey,
-      0,
-      $iv
-    );
-
-    if ($decrypted === false) {
-      throw new Exception("Decryption failed");
-    }
-
-    return $decrypted;
-  }
-
-  public function isValidUserKey(string $userKey): bool
-  {
-    $query = "SELECT user_key FROM users";
-    $stmt = $this->DB->query($query);
-    $keys = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    foreach ($keys as $encryptedKey) {
-      try {
-        $decryptedKey = $this->DecryptKey($encryptedKey);
-        if ($decryptedKey === $userKey) {
-          return true;
-        }
-      } catch (Exception $e) {
-        echo "Failed to decrypt key: {$e->getMessage()}\n";
-      }
-    }
-
     return false;
   }
+
+  public function delete(int $projectId, string $userKey): bool
+{
+    $query = "DELETE FROM {$this->table} WHERE project_id = :project_id AND user_key = :user_key";
+
+    $stmt = $this->DB->prepare($query);
+    $stmt->bindParam(":project_id", $projectId, PDO::PARAM_INT);
+    $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
+
+    return $stmt->execute();
+}
+
 }

@@ -1,4 +1,5 @@
 <?php
+namespace Model;
 use DB\DB;
 require_once "./autoader.php";
 class User
