@@ -2,7 +2,6 @@
 
 use DB\DB;
 use Helpers\decrypt;
-require_once "./autoader.php";
 class Skills
 {
   private string $table = "skills";

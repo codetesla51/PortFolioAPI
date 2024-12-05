@@ -1,6 +1,5 @@
 <?php
 namespace Controller;
-require_once "./autoader.php";
 use Model\User;
 use Helpers\encrypt;
 class UserController

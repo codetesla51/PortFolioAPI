@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . "../../models/Skills.php";
-require_once "./autoader.php";
 use Helpers\decrypt;
 use DB\DB;
 

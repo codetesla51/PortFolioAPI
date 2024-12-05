@@ -1,6 +1,5 @@
 <?php
 namespace Model;
-require_once "./autoader.php";
 use DB\DB;
 use PDO;
 class Projects

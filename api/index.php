@@ -1,4 +1,5 @@
 <?php
+require_once "autoader.php";
 require_once "src/controllers/projectController.php";
 require_once "src/controllers/skillsController.php";
 $routes = require "src/routes/api.php";
