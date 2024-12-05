@@ -1,5 +1,4 @@
 <?php
-require_once "./autoader.php";
 use Model\Projects;
 use Helpers\decrypt;
 use DB\DB;
