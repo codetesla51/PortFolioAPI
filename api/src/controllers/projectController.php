@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "../../autoloader.php";
+require_once "./autoader.php";
 use Model\Projects;
 use Helpers\decrypt;
 use DB\DB;
