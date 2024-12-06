@@ -1,47 +1,25 @@
 <?php
-require __DIR__ . "../../models/Skills.php";
-use Helpers\decrypt;
-use DB\DB;
-
+use Model\Skills;
 class SkillsController
 {
   private $skillsModel;
-  private $decrypt;
-  private $DB;
+  private $middleware;
+
   public function __construct()
   {
     $this->skillsModel = new Skills();
-    $this->decrypt = new Decrypt();
-    $this->DB = (new DB())->connect();
+    $this->middleware = new Middleware\ApiKeyMiddleware();
   }
 
   public function store(): void
   {
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    // Check for API key
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Validate API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Parse input data
+    $userKey = $this->middleware->handle();
     $data = json_decode(file_get_contents("php://input"), true);
     $data["skill_name"] = $data["skill_name"] ?? "Untitled";
     $data["experience_level"] = $data["experience_level"] ?? "Beginner";
     $data["years_of_experience"] = $data["years_of_experience"] ?? 0;
     $data["description"] = $data["description"] ?? "No description";
-        $data["user_key"] = $userKey;
-
+    $data["user_key"] = $userKey;
 
     // Validate experience level
     $validExperienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
@@ -61,30 +39,13 @@ class SkillsController
   }
   public function update(int $id): void
   {
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401);
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Validate API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Parse input data
+    $userKey = $this->middleware->handle();
     $data = json_decode(file_get_contents("php://input"), true);
     $data["skill_name"] = $data["skill_name"] ?? "Untitled";
     $data["experience_level"] = $data["experience_level"] ?? "Beginner";
     $data["years_of_experience"] = $data["years_of_experience"] ?? 0;
     $data["description"] = $data["description"] ?? "No description";
 
-    // Validate experience level
     $validExperienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
     if (!in_array($data["experience_level"], $validExperienceLevels, true)) {
       http_response_code(400); // Bad Request
@@ -92,7 +53,7 @@ class SkillsController
       return;
     }
 
-    if ($this->skillsModel->update($data, $id,$userKey)) {
+    if ($this->skillsModel->update($data, $id, $userKey)) {
       echo json_encode(["message" => "Updated Skill successfully"]);
     } else {
       http_response_code(500);
@@ -101,15 +62,7 @@ class SkillsController
   }
   public function index(): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
+    $userKey = $this->middleware->handle();
 
     $projects = $this->skillsModel->findAll($userKey);
     echo json_encode($projects);
@@ -117,24 +70,7 @@ class SkillsController
 
   public function show(int $id): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify the API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Fetch project by ID
+    $userKey = $this->middleware->handle();
     $project = $this->skillsModel->findById($id, $userKey);
     if ($project) {
       echo json_encode($project);
@@ -148,22 +84,7 @@ class SkillsController
 
   public function destroy(int $id): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify the API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
+    $userKey = $this->middleware->handle();
 
     if ($this->skillsModel->delete($id)) {
       echo json_encode(["message" => "skill deleted successfully"]);
@@ -171,24 +92,5 @@ class SkillsController
       http_response_code(500); // Internal Server Error
       echo json_encode(["error" => "Failed to delete skill"]);
     }
-  }
-  public function isValidUserKey(string $userKey): bool
-  {
-    $query = "SELECT user_key FROM users";
-    $stmt = $this->DB->query($query);
-    $keys = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    foreach ($keys as $encryptedKey) {
-      try {
-        $decryptedKey = $this->decrypt->DecryptKey($encryptedKey);
-        if ($decryptedKey === $userKey) {
-          return true;
-        }
-      } catch (Exception $e) {
-        echo "Failed to decrypt key: {$e->getMessage()}\n";
-      }
-    }
-
-    return false;
   }
 }

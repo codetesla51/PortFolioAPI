@@ -1,40 +1,20 @@
 <?php
 use Model\Projects;
-use Helpers\decrypt;
-use DB\DB;
-
 class ProjectController
 {
   private $ProjectModel;
-  private $decrypt;
   private $DB;
+  private $middleware;
   public function __construct()
   {
     $this->ProjectModel = new Projects();
-    $this->decrypt = new Decrypt();
-    $this->DB = (new DB())->connect();
+    $this->middleware = new Middleware\ApiKeyMiddleware();
   }
 
   public function store(): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
+    $userKey = $this->middleware->handle();
 
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Decode incoming data
     $data = json_decode(file_get_contents("php://input"), true);
 
     $data["title"] = $data["title"] ?? "Untitled Project";
@@ -59,27 +39,9 @@ class ProjectController
 
   public function update(int $id): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Decode incoming data
+    $userKey = $this->middleware->handle();
     $data = json_decode(file_get_contents("php://input"), true);
 
-    // Validate and sanitize input data
     $data["title"] = $data["title"] ?? "Untitled Project";
     $data["image"] = $data["image"] ?? null;
     $data["description"] = $data["description"] ?? null;
@@ -103,40 +65,14 @@ class ProjectController
 
   public function index(): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
+    $userKey = $this->middleware->handle();
     $projects = $this->ProjectModel->fetchByUserKey($userKey);
     echo json_encode($projects);
   }
 
   public function show(int $id): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify the API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
-    // Fetch project by ID
+    $userKey = $this->middleware->handle();
     $project = $this->ProjectModel->fetchId($id, $userKey);
     if ($project) {
       echo json_encode($project);
@@ -150,47 +86,12 @@ class ProjectController
 
   public function destroy(int $id): void
   {
-    // Retrieve the API key from headers
-    $headers = getallheaders();
-    $userKey = $headers["API-Key"] ?? null;
-
-    if (!$userKey) {
-      http_response_code(401); // Unauthorized
-      echo json_encode(["error" => "API key is required"]);
-      return;
-    }
-
-    // Verify the API key
-    if (!$this->isValidUserKey($userKey)) {
-      http_response_code(403); // Forbidden
-      echo json_encode(["error" => "Invalid API key"]);
-      return;
-    }
-
+    $userKey = $this->middleware->handle();
     if ($this->ProjectModel->delete($id)) {
       echo json_encode(["message" => "Project deleted successfully"]);
     } else {
       http_response_code(500); // Internal Server Error
       echo json_encode(["error" => "Failed to delete project"]);
     }
-  }
-  public function isValidUserKey(string $userKey): bool
-  {
-    $query = "SELECT user_key FROM users";
-    $stmt = $this->DB->query($query);
-    $keys = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    foreach ($keys as $encryptedKey) {
-      try {
-        $decryptedKey = $this->decrypt->DecryptKey($encryptedKey);
-        if ($decryptedKey === $userKey) {
-          return true;
-        }
-      } catch (Exception $e) {
-        echo "Failed to decrypt key: {$e->getMessage()}\n";
-      }
-    }
-
-    return false;
   }
 }

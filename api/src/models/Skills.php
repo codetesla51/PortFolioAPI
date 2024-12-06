@@ -1,6 +1,7 @@
 <?php
-
+namespace Model;
 use DB\DB;
+use PDO;
 use Helpers\decrypt;
 class Skills
 {
@@ -76,10 +77,11 @@ class Skills
     return false;
   }
 
-  public function findAll(): array
+  public function findAll(string $userKey): array
   {
-    $query = "SELECT * FROM {$this->table}";
+    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key";
     $stmt = $this->DB->prepare($query);
+    $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
 
     if ($stmt->execute()) {
       return $stmt->fetchAll(PDO::FETCH_ASSOC);

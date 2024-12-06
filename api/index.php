@@ -2,6 +2,8 @@
 require_once "autoader.php";
 require_once "src/controllers/projectController.php";
 require_once "src/controllers/skillsController.php";
+require_once "src/controllers/reviewsController.php";
+require_once "src/controllers/experienceController.php";
 $routes = require "src/routes/api.php";
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
