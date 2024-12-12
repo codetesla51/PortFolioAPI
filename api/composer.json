@@ -1,0 +1,12 @@
+{
+    "name": "u0_a234/api",
+    "authors": [
+        {
+            "name": "codetesla",
+            "email": "uoladele99@gmail.com"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}

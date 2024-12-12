@@ -19,6 +19,8 @@ return [
     "/skills" => "skillsController@store",
     "/reviews" => "reviewsController@store",
     "/experinece" => "experienceController@store",
+    "/email" => "emailController@handleRequest",
+    
   ],
   "PUT" => [
     "/projects/{id}" => "projectController@update",

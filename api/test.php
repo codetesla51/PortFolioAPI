@@ -1,10 +1,10 @@
 <?php
-require __DIR__ . "/src/controllers/userController.php";
-
+require "autoader.php";
+use Controller\userController;
 $name = "JohnDoe";
 $password = "Password123";
-
-$userController = new UserController($name, $password);
+$email = "uoladele99@gmail.com";
+$userController = new UserController($name, $password, $email);
 
 $result = $userController->validate();
 

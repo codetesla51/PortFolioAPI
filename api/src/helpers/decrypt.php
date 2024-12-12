@@ -7,7 +7,7 @@ class Decrypt
     $parts = explode("::", base64_decode($key), 2);
 
     if (count($parts) !== 2) {
-      throw new Exception("Invalid encrypted data format");
+      throw new \RuntimeException("Invalid encrypted data format");
     }
 
     [$encryptedData, $iv] = $parts;
@@ -24,7 +24,7 @@ class Decrypt
     );
 
     if ($decrypted === false) {
-      throw new Exception("Decryption failed");
+      throw new \RuntimeException("Decryption failed");
     }
 
     return $decrypted;

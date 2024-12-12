@@ -1,21 +1,23 @@
 <?php
 
 use Model\Experience;
-
+use Middleware\rateLimit;
 class ExperienceController
 {
   private $experienceModel;
   private $middleware;
-
+  private $limit;
   public function __construct()
   {
     $this->experienceModel = new Experience();
     $this->middleware = new Middleware\ApiKeyMiddleware();
+    $this->limit = new RateLimit();
   }
 
   public function store(): void
   {
     $userKey = $this->middleware->handle();
+    $this->limit->trackRequest();
     $data = json_decode(file_get_contents("php://input"), true);
     $data["company_name"] = $data["company_name"] ?? "Unknown Company";
     $data["role"] = $data["role"] ?? "Unknown Role";
