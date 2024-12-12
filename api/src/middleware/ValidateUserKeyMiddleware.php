@@ -10,7 +10,7 @@ class ApiKeyMiddleware
   private $db;
   private $table = "users";
   private int $dailyEmailLimit = 3;
-  private int $dailyRequestLimit = 20;
+  private int $dailyRequestLimit = 3;
   private ?string $userKey = null;
 
   public function __construct()
@@ -18,23 +18,38 @@ class ApiKeyMiddleware
     $this->decrypt = new Decrypt();
     $this->db = (new DB())->connect();
   }
-
   /**
-   * Main handler for API key validation.
+   * Main handler for API key validation and request limits.
    */
-  public function handle(): bool
+  public function handle(bool $isAdmin = false): bool
   {
+    $this->table = $isAdmin ? "admins" : "users";
     $headers = getallheaders();
     $this->userKey = $headers["API-Key"] ?? null;
 
     if (!$this->userKey) {
       $this->sendResponse(401, "API key is missing.");
     }
-
     if (!$this->isValidUserKey()) {
+if ($isAdmin) {
+            $this->sendResponse(401, "Unauthorized access."); // For admins
+        } else {
+            $this->sendResponse(403, "Invalid API key."); // For users
+        }    }
+    if ($isAdmin) {
+      return true;
+      if (!$this->isValidUserKey()) {
       $this->sendResponse(403, "Invalid API key.");
     }
+    }
+    if (!$this->isUnderDailyRequestLimit()) {
+      $this->sendResponse(
+        429,
+        "Request limit reached. Please try again tomorrow."
+      );
+    }
 
+    $this->incrementRequestCount(); // Increment the request count for the user.
     return true;
   }
 
@@ -104,29 +119,28 @@ class ApiKeyMiddleware
    * Increment a specific field in the database for the user.
    */
   private function incrementField(string $field): void
-{
+  {
     try {
-        // Fetch the encrypted key for the given user key
-        $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
+      // Fetch the encrypted key for the given user key
+      $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
-        if (!$encryptedKey) {
-            $this->sendResponse(403, "Invalid API key.");
-        }
+      if (!$encryptedKey) {
+        $this->sendResponse(403, "Invalid API key.");
+      }
 
-        // Update the field in the database
-        $query = "UPDATE {$this->table} SET {$field} = {$field} + 1 WHERE user_key = :key";
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(":key", $encryptedKey, \PDO::PARAM_STR);
+      // Update the field in the database
+      $query = "UPDATE {$this->table} SET {$field} = {$field} + 1 WHERE user_key = :key";
+      $stmt = $this->db->prepare($query);
+      $stmt->bindParam(":key", $encryptedKey, \PDO::PARAM_STR);
 
-        if (!$stmt->execute()) {
-            $this->sendResponse(500, "Failed to update {$field}.");
-        }
+      if (!$stmt->execute()) {
+        $this->sendResponse(500, "Failed to update {$field}.");
+      }
     } catch (\PDOException $e) {
-        error_log("Database update failed: " . $e->getMessage());
-        $this->sendResponse(500, "Internal server error.");
+      error_log("Database update failed: " . $e->getMessage());
+      $this->sendResponse(500, "Internal server error.");
     }
-}
-
+  }
 
   /**
    * Fetch all user keys from the database.
@@ -167,22 +181,36 @@ class ApiKeyMiddleware
 
     return null;
   }
-private function getEncryptedKeyByDecryptedKey(): ?string
-{
+  private function getEncryptedKeyByDecryptedKey(): ?string
+  {
     $keys = $this->fetchAllKeys();
 
     foreach ($keys as $encryptedKey) {
-        try {
-            if ($this->decrypt->DecryptKey($encryptedKey) === $this->userKey) {
-                return $encryptedKey;
-            }
-        } catch (\Exception $e) {
-            error_log("Decryption error: " . $e->getMessage());
+      try {
+        if ($this->decrypt->DecryptKey($encryptedKey) === $this->userKey) {
+          return $encryptedKey;
         }
+      } catch (\Exception $e) {
+        error_log("Decryption error: " . $e->getMessage());
+      }
     }
 
     return null;
-}
+  }
+  public function handelAdmin(): bool
+  {
+    $headers = getallheaders();
+    $this->userKey = $headers["API-Key"] ?? null;
+
+    if (!$this->userKey) {
+      $this->sendResponse(401, "API key is missing.");
+    }
+
+    if (!$this->isValidUserKey()) {
+      $this->sendResponse(403, "Invalid API key.");
+    }
+    return true;
+  }
 
   /**
    * Send an HTTP response with a status code and message.

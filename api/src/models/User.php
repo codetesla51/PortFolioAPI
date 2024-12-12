@@ -23,7 +23,7 @@ class User
   public function isEmailTaken(string $email): bool
   {
     $query = "SELECT COUNT(*) as count FROM users WHERE user_email = :email";
-    $stmt = $this->db->prepare($query);
+    $stmt = $this->DB->prepare($query);
     $stmt->bindParam(":email", $email);
     $stmt->execute();
     $result = $stmt->fetch();

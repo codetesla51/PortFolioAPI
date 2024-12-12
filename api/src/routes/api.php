@@ -20,13 +20,13 @@ return [
     "/reviews" => "reviewsController@store",
     "/experinece" => "experienceController@store",
     "/email" => "emailController@handleRequest",
-    
   ],
   "PUT" => [
     "/projects/{id}" => "projectController@update",
     "/skills/{id}" => "skillsController@update",
     "/reviews/{id}" => "reviewsController@update",
     "/experinece/{id}" => "experienceController@update",
+    "/reset" => "resetController@resetUserLimits",
   ],
   "DELETE" => [
     "/projects/{id}" => "projectController@destroy",

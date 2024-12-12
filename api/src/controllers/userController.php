@@ -21,45 +21,59 @@ class UserController
   }
 
   public function validate(): array
-  {
-    if (empty($this->name) || empty($this->password)) {
-      return ["status" => "error", "message" => "All fields are required"];
+{
+    // Check for empty fields
+    if (empty($this->name) || empty($this->password) || empty($this->email)) {
+        return ["status" => "error", "message" => "All fields are required"];
     }
 
+    // Check if email is already taken
+    if ($this->userModel->isEmailTaken($this->email)) {
+        return ["status" => "error", "message" => "Email is already taken"];
+    }
+
+    // Validate password length
     if (strlen($this->password) < 8) {
-      return [
-        "status" => "error",
-        "message" => "Password must be longer than 8 characters",
-      ];
+        return [
+            "status" => "error",
+            "message" => "Password must be longer than 8 characters",
+        ];
     }
 
+    // Validate password contains uppercase letters
     if (!preg_match("/[A-Z]/", $this->password)) {
-      return [
-        "status" => "error",
-        "message" => "Password must contain an uppercase letter",
-      ];
+        return [
+            "status" => "error",
+            "message" => "Password must contain an uppercase letter",
+        ];
     }
 
+    // Hash the password
     $hashedPassword = password_hash($this->password, PASSWORD_BCRYPT);
+
+    // Generate API key
     $apiKey = $this->generateApiKey();
 
+    // Create the user
     $inserted = $this->userModel->createUser(
-      $this->name,
-      $this->email,
-      $hashedPassword,
-      $apiKey["encrypted"]
+        $this->name,
+        $this->email,
+        $hashedPassword,
+        $apiKey["encrypted"]
     );
 
+    // Check if user was created successfully
     if ($inserted) {
-      return [
-        "status" => "success",
-        "message" => "User registered successfully",
-        "api_key" => $apiKey["raw"],
-      ];
+        return [
+            "status" => "success",
+            "message" => "User registered successfully",
+            "api_key" => $apiKey["raw"],
+        ];
     } else {
-      return ["status" => "error", "message" => "Failed to register user"];
+        return ["status" => "error", "message" => "Failed to register user"];
     }
-  }
+}
+
 
   /**
    * Generates and encrypts an API key
