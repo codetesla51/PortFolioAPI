@@ -9,7 +9,7 @@ class Encrypt
     $ivLength = openssl_cipher_iv_length($cipherMethod);
     $iv = openssl_random_pseudo_bytes($ivLength);
 
-    $encryptionKey = "usman";
+    $encryptionKey = $_ENV["ENCRYPTION_KEY"];
 
     $encryptedData = openssl_encrypt(
       $key,

@@ -17,6 +17,9 @@ require_once "src/controllers/reviewsController.php";
 require_once "src/controllers/experienceController.php";
 require_once "src/controllers/emailController.php";
 $routes = require "src/routes/api.php";
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createMutable(__DIR__);
+$dotenv->load();
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $requestUri = strtok($_SERVER["REQUEST_URI"], "?");

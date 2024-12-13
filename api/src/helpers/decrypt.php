@@ -13,7 +13,7 @@ class Decrypt
     [$encryptedData, $iv] = $parts;
 
     $cipherMethod = "AES-256-CBC";
-    $encryptionKey = "usman";
+    $encryptionKey = $_ENV["ENCRYPTION_KEY"];
 
     $decrypted = openssl_decrypt(
       $encryptedData,

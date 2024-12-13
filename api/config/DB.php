@@ -4,19 +4,32 @@ namespace DB;
 
 use PDO;
 use PDOException;
+use Exception;
+use Dotenv\Dotenv;
 
 class DB
 {
-  private string $DB_NAME = "freedb_portfolioApi";
-  private string $DB_PASS = "FdW#!#ggs&Sx3s!";
-  private string $DB_USER = "freedb_uthman";
-  private string $DB_HOST = "sql.freedb.tech";
+  private string $DB_NAME;
+  private string $DB_PASS;
+  private string $DB_USER;
+  private string $DB_HOST;
   private ?PDO $connection = null;
+
+  public function __construct()
+  {
+    $this->DB_NAME =
+      $_ENV["DB_NAME"] ;
+    $this->DB_PASS =
+      $_ENV["DB_PASSWORD"];
+    $this->DB_USER =
+      $_ENV["DB_USER"];
+    $this->DB_HOST =
+      $_ENV["DB_HOST"] ;
+  }
 
   // Connect to the database
   public function connect(): ?PDO
   {
-    // Only create a new connection if it does not exist
     if ($this->connection === null) {
       try {
         $dsn = "mysql:host={$this->DB_HOST};dbname={$this->DB_NAME}";
@@ -30,7 +43,7 @@ class DB
           PDO::FETCH_ASSOC
         );
       } catch (PDOException $e) {
-        die("Database connection failed: " . $e->getMessage());
+        throw new Exception("Database connection failed: " . $e->getMessage());
       }
     }
     return $this->connection;
@@ -39,34 +52,13 @@ class DB
   // Disconnect from the database
   public function disconnectDB(): void
   {
-    // Ensure the connection is not already null before attempting to disconnect
     if ($this->connection !== null) {
-      $this->connection = null; // Close the connection
+      $this->connection = null;
     }
   }
 
-  // Check if connected to the database
   public function isConnected(): bool
   {
     return $this->connection !== null;
   }
-}
-
-try {
-  $db = new DB();
-
-  $connection = $db->connect();
-
-  if ($connection) {
-    echo "Database connected successfully.<br>";
-  } else {
-    echo "Failed to connect to the database.<br>";
-  }
-
-  if ($db->isConnected()) {
-  } else {
-    echo "Database was not connected.<br>";
-  }
-} catch (Exception $e) {
-  echo "An error occurred: " . $e->getMessage();
 }
