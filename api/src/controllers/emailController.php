@@ -79,12 +79,12 @@ class emailController
 
       $mail = new PHPMailer(true);
       $mail->isSMTP();
-      $mail->Host = "smtp.gmail.com";
+      $mail->Host = $_ENV["MAIL_HOST"];
       $mail->SMTPAuth = true;
-      $mail->Username = "uoladele99@gmail.com";
-      $mail->Password = "vjtq pzio jebf pemt";
-      $mail->SMTPSecure = "ssl";
-      $mail->Port = 465;
+      $mail->Username = $_ENV["MAIL_USERNAME"];
+      $mail->Password = $_ENV["MAIL_PASSWORD"];
+      $mail->SMTPSecure = $_ENV["MAIL_SMTPSECURE"];
+      $mail->Port = $_ENV["MAIL_PORT"];
       $mail->setFrom($senderEmail, $senderName);
       $mail->addReplyTo($senderEmail, $senderName);
       $mail->addAddress($recipientEmail);
