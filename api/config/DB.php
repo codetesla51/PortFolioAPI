@@ -7,15 +7,16 @@ use PDOException;
 
 class DB
 {
-  private string $DB_NAME = "4443499_projex";
-  private string $DB_PASS = "+11Sl-(e7_wt[j@)";
-  private string $DB_USER = "4443499_projex";
-  private string $DB_HOST = "fdb1032.awardspace.net";
+  private string $DB_NAME = "freedb_portfolioApi";
+  private string $DB_PASS = "FdW#!#ggs&Sx3s!";
+  private string $DB_USER = "freedb_uthman";
+  private string $DB_HOST = "sql.freedb.tech";
   private ?PDO $connection = null;
 
   // Connect to the database
   public function connect(): ?PDO
   {
+    // Only create a new connection if it does not exist
     if ($this->connection === null) {
       try {
         $dsn = "mysql:host={$this->DB_HOST};dbname={$this->DB_NAME}";
@@ -38,16 +39,22 @@ class DB
   // Disconnect from the database
   public function disconnectDB(): void
   {
-    $this->connection = null;
+    // Ensure the connection is not already null before attempting to disconnect
+    if ($this->connection !== null) {
+      $this->connection = null; // Close the connection
+    }
+  }
+
+  // Check if connected to the database
+  public function isConnected(): bool
+  {
+    return $this->connection !== null;
   }
 }
 
-// Testing the DB class
 try {
-  // Create an instance of the DB class
   $db = new DB();
 
-  // Try to connect to the database
   $connection = $db->connect();
 
   if ($connection) {
@@ -56,9 +63,10 @@ try {
     echo "Failed to connect to the database.<br>";
   }
 
-  // Disconnect from the database
-  $db->disconnectDB();
-  echo "Database disconnected.";
+  if ($db->isConnected()) {
+  } else {
+    echo "Database was not connected.<br>";
+  }
 } catch (Exception $e) {
   echo "An error occurred: " . $e->getMessage();
 }
