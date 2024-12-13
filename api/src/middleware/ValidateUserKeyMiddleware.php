@@ -31,25 +31,19 @@ class ApiKeyMiddleware
       $this->sendResponse(401, "API key is missing.");
     }
     if (!$this->isValidUserKey()) {
-if ($isAdmin) {
-            $this->sendResponse(401, "Unauthorized access."); // For admins
-        } else {
-            $this->sendResponse(403, "Invalid API key."); // For users
-        }    }
+      if ($isAdmin) {
+        $this->sendResponse(401, "Unauthorized access."); // For admins
+      } else {
+        $this->sendResponse(403, "Invalid API key."); // For users
+      }
+    }
     if ($isAdmin) {
       return true;
       if (!$this->isValidUserKey()) {
-      $this->sendResponse(403, "Invalid API key.");
+        $this->sendResponse(403, "Invalid API key.");
+      }
     }
-    }
-    if (!$this->isUnderDailyRequestLimit()) {
-      $this->sendResponse(
-        429,
-        "Request limit reached. Please try again tomorrow."
-      );
-    }
-
-    $this->incrementRequestCount(); // Increment the request count for the user.
+    
     return true;
   }
 

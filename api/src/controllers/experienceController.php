@@ -11,13 +11,19 @@ class ExperienceController
   {
     $this->experienceModel = new Experience();
     $this->middleware = new Middleware\ApiKeyMiddleware();
-    $this->limit = new RateLimit();
   }
 
   public function store(): void
   {
     $userKey = $this->middleware->handle();
-    $this->limit->trackRequest();
+    if (!$this->middleware->isUnderDailyRequestLimit()) {
+      $this->sendResponse(
+        429,
+        "Request limit reached. Please try again tomorrow."
+      );
+    }
+
+    $this->middleware->incrementRequestCount();
     $data = json_decode(file_get_contents("php://input"), true);
     $data["company_name"] = $data["company_name"] ?? "Unknown Company";
     $data["role"] = $data["role"] ?? "Unknown Role";

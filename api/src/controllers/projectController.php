@@ -15,7 +15,14 @@ class ProjectController
   public function store(): void
   {
     $userKey = $this->middleware->handle();
-    
+    if (!$this->middleware->isUnderDailyRequestLimit()) {
+      $this->sendResponse(
+        429,
+        "Request limit reached. Please try again tomorrow."
+      );
+    }
+
+    $this->middleware->incrementRequestCount();
 
     $data = json_decode(file_get_contents("php://input"), true);
 
