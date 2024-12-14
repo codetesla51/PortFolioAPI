@@ -17,14 +17,15 @@ class DB
 
   public function __construct()
   {
+
     $this->DB_NAME =
-      $_ENV["DB_NAME"] ;
+      $_ENV["DB_NAME"] ?? throw new Exception("DB_NAME not set in .env");
     $this->DB_PASS =
-      $_ENV["DB_PASSWORD"];
+      $_ENV["DB_PASSWORD"] ?? throw new Exception("DB_PASS not set in .env");
     $this->DB_USER =
-      $_ENV["DB_USER"];
+      $_ENV["DB_USER"] ?? throw new Exception("DB_USER not set in .env");
     $this->DB_HOST =
-      $_ENV["DB_HOST"] ;
+      $_ENV["DB_HOST"] ?? throw new Exception("DB_HOST not set in .env");
   }
 
   // Connect to the database
@@ -53,12 +54,36 @@ class DB
   public function disconnectDB(): void
   {
     if ($this->connection !== null) {
-      $this->connection = null;
+      $this->connection = null; // Close the connection
     }
   }
 
+  // Check if connected to the database
   public function isConnected(): bool
   {
     return $this->connection !== null;
   }
+}
+
+// Usage Example
+try {
+  $db = new DB();
+  $connection = $db->connect();
+
+  if ($connection) {
+    echo "Database connected successfully.<br>";
+  } else {
+    echo "Failed to connect to the database.<br>";
+  }
+
+  if ($db->isConnected()) {
+    echo "Database is still connected.<br>";
+  } else {
+    echo "Database was disconnected.<br>";
+  }
+
+  // Disconnect
+  $db->disconnectDB();
+} catch (Exception $e) {
+  echo "An error occurred: " . $e->getMessage();
 }
