@@ -2,17 +2,13 @@
 return [
   "GET" => [
     "/projects" => "projectController@index",
-    "/projects/" => "projectController@index",
     "/projects/{id}" => "projectController@show",
     "/skills" => "skillsController@index",
-    "/skills/" => "skillsController@index",
     "/skills/{id}" => "skillsController@show",
     "/reviews" => "reviewsController@index",
-    "/reviews/" => "reviewsController@index",
     "/reviews/{id}" => "reviewsController@show",
     "/experinece{id}" => "experienceController@show",
     "/experinece" => "experienceController@index",
-    "/experinece/" => "experienceController@index",
   ],
   "POST" => [
     "/projects" => "projectController@store",
@@ -20,6 +16,8 @@ return [
     "/reviews" => "reviewsController@store",
     "/experinece" => "experienceController@store",
     "/email" => "emailController@handleRequest",
+    "/register" => "userController@register",
+    "/login" => "userController@login",
   ],
   "PUT" => [
     "/projects/{id}" => "projectController@update",

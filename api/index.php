@@ -7,20 +7,19 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
   http_response_code(200);
   exit();
 }
-
+use Dotenv\Dotenv;
 require_once "autoader.php";
 require_once "vendor/autoload.php";
-require_once "src/controllers/resetController.php";
 require_once "src/controllers/projectController.php";
+require_once "src/controllers/resetController.php";
 require_once "src/controllers/skillsController.php";
 require_once "src/controllers/reviewsController.php";
 require_once "src/controllers/experienceController.php";
 require_once "src/controllers/emailController.php";
+require_once "src/controllers/userController.php";
 $routes = require "src/routes/api.php";
-use Dotenv\Dotenv;
 $dotenv = Dotenv::createMutable(__DIR__);
 $dotenv->load();
-
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $requestUri = strtok($_SERVER["REQUEST_URI"], "?");
 

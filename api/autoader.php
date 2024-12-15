@@ -1,7 +1,7 @@
 <?php
+require_once( "loadENV.php");
 function myAutoloader($class)
 {
-  // Define the base directories for different namespaces
   $baseDirs = [
     "DB" => __DIR__ . "/config/",
     "Controller" => __DIR__ . "/src/controllers/",
@@ -12,13 +12,11 @@ function myAutoloader($class)
     "" => __DIR__ . "/src/",
   ];
 
-  // Special mapping for class name mismatches
   $specialCases = [
     "Middleware\\ApiKeyMiddleware" =>
       __DIR__ . "/src/middleware/ValidateUserKeyMiddleware.php",
   ];
 
-  // Check special cases first
   if (isset($specialCases[$class])) {
     $file = $specialCases[$class];
     if (file_exists($file)) {
@@ -29,7 +27,6 @@ function myAutoloader($class)
     }
   }
 
-  // Regular namespace-based autoloading
   foreach ($baseDirs as $namespace => $dir) {
     if ($namespace === "" || strpos($class, $namespace . "\\") === 0) {
       $class = str_replace($namespace . "\\", "", $class);

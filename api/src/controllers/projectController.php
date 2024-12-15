@@ -17,8 +17,7 @@ class ProjectController
     $userKey = $this->middleware->handle();
     if (!$this->middleware->isUnderDailyRequestLimit()) {
       $this->sendResponse(
-        429,
-        "Request limit reached. Please try again tomorrow."
+        429 , ["error" => "Request limit reached. Please try again tomorrow."]
       );
     }
 
