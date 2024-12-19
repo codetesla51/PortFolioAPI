@@ -25,6 +25,7 @@ return [
     "/reviews/{id}" => "reviewsController@update",
     "/experinece/{id}" => "experienceController@update",
     "/reset" => "resetController@resetUserLimits",
+    "/resetReq" => "resetController@deleteAllRecords",
     "/updateAPIKEY" => "userController@regenerateAPIKey",
   ],
   "DELETE" => [

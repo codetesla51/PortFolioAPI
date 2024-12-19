@@ -1,52 +1,54 @@
 <?php
 namespace Controller;
+
 use Model\Admin;
 use Helpers\encrypt;
+use Helpers\decrypt;
 
 class AdminController
 {
-  private string $username;
   private $adminModel;
   private $encrypt;
+  private $decrypt;
 
-  public function __construct(string $username)
+  public function __construct()
   {
-    $this->username = $username;
     $this->adminModel = new Admin();
     $this->encrypt = new Encrypt();
+    $this->decrypt = new Decrypt();
   }
 
   public function validate(): array
   {
-    if (empty($this->username)) {
-      return ["status" => "error", "message" => "All fields are required"];
+    $fixedUsername = $_ENV["ADMIN_USERNAME"] ?? null;
+    $fixedApiKey = $_ENV["ADMIN_API_KEY"] ?? null;
+    $encryptedAPIkey = $this->encrypt->EncryptKey($fixedApiKey);
+    if (!$fixedUsername || !$fixedApiKey) {
+      return [
+        "status" => "error",
+        "message" => "Environment variables are not properly set",
+      ];
     }
 
-    $apiKey = $this->generateApiKey();
-    $inserted = $this->adminModel->CreateAdmin(
-      $this->username,
-      $apiKey["encrypted"]
-    );
+    $existingAdmin = $this->adminModel->getAdminByUsername($fixedUsername);
 
+    if ($existingAdmin) {
+      return ["status" => "error", "message" => "Admin already exists"];
+    }
+
+    $inserted = $this->adminModel->createAdmin(
+      $fixedUsername,
+      $encryptedAPIkey
+    );
+    $decryptedAPIkey = $this->decrypt->DecryptKey($encryptedAPIkey);
     if ($inserted) {
       return [
         "status" => "success",
         "message" => "Admin registered successfully",
-        "api_key" => $apiKey["raw"],
+        "api_key" => $decryptedAPIkey,
       ];
     } else {
       return ["status" => "error", "message" => "Failed to register Admin"];
     }
-  }
-
-  private function generateApiKey(): array
-  {
-    $rawApiKey = bin2hex(random_bytes(16));
-    $encryptedApiKey = $this->encrypt->EncryptKey($rawApiKey);
-
-    return [
-      "raw" => $rawApiKey,
-      "encrypted" => $encryptedApiKey,
-    ];
   }
 }

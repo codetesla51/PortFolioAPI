@@ -32,10 +32,13 @@ class ApiKeyMiddleware
     $this->userKey = $headers["api-key"] ?? null;
 
     if (!$this->userKey) {
-      $this->sendResponse(401, [
-        "status" => "error",
-        "message" => "API key required",
-      ]);
+      $this->sendResponse(
+        401,
+        json_encode([
+          "status" => "error",
+          "message" => "API key required",
+        ])
+      );
     }
 
     if (!$this->AddOrRestrict()) {
@@ -48,10 +51,13 @@ class ApiKeyMiddleware
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse($isAdmin ? 401 : 403, [
-        "status" => "error",
-        "message" => "Invalid API key",
-      ]);
+      $this->sendResponse(
+        $isAdmin ? 401 : 403,
+        json_encode([
+          "status" => "error",
+          "message" => "Unauthorized",
+        ])
+      );
     }
 
     return $this->userKey;

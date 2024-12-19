@@ -8,6 +8,7 @@ class ResetController
   private $db;
   private $table = "admins";
   private $userTable = "users";
+  private $logTable = "log";
   private $middleware;
 
   public function __construct()
@@ -49,6 +50,30 @@ class ResetController
         "message" => "An error occurred while resetting user limits.",
         "error" => $e->getMessage(),
       ]);
+      return false;
+    }
+  }
+  public function deleteAllRecords(): bool
+  {
+    $userKey = $this->middleware->handle(true);
+    if (!$userKey) {
+      http_response_code(401);
+      echo json_encode(["message" => "Unauthorized access."]);
+      return false;
+    }
+
+    try {
+      $sql = "DELETE FROM {$this->logTable}";
+      $stmt = $this->db->prepare($sql);
+      $stmt->execute();
+
+      http_response_code(200);
+      echo json_encode(["message" => "All records deleted successfully."]);
+      return true;
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(["message" => "Internal Server Error."]);
+      error_log($e->getMessage());
       return false;
     }
   }

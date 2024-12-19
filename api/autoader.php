@@ -1,5 +1,4 @@
 <?php
-require_once( "loadENV.php");
 function myAutoloader($class)
 {
   $baseDirs = [
