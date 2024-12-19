@@ -1,6 +1,4 @@
 .env
 .env.local
 .env.*
-
-
 composer.lock
