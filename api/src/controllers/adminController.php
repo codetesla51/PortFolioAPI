@@ -26,7 +26,7 @@ class AdminController
     if (!$fixedUsername || !$fixedApiKey) {
       return [
         "status" => "error",
-        "message" => "Environment variables are not properly set",
+        "message" => "Admin Not Set",
       ];
     }
 

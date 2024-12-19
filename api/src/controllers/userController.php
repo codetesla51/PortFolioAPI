@@ -45,10 +45,14 @@ class UserController
     );
 
     if ($inserted) {
+      $user = $this->userModel->getUserByEmail($this->inputData["email"]);
+
       $this->sendResponse(201, [
         "status" => "success",
         "message" => "User registered successfully",
+        "username" => $user["user_name"],
         "api_key" => $apiKey["raw"],
+        "email" => $user["user_email"],
       ]);
     } else {
       $this->sendResponse(500, [
@@ -57,7 +61,6 @@ class UserController
       ]);
     }
   }
-
   /**
    * Validates user input
    */
@@ -110,26 +113,29 @@ class UserController
    * Handles user login
    */
   public function login(): void
-{
+  {
     if (
-        empty($this->inputData["email"]) ||
-        empty($this->inputData["password"])
+      empty($this->inputData["email"]) ||
+      empty($this->inputData["password"])
     ) {
-        $this->sendResponse(400, [
-            "status" => "error",
-            "message" => "Email and password are required",
-        ]);
-        return;
+      $this->sendResponse(400, [
+        "status" => "error",
+        "message" => "Email and password are required",
+      ]);
+      return;
     }
 
     $user = $this->userModel->getUserByEmail($this->inputData["email"]);
 
-    if (!$user || !password_verify($this->inputData["password"], $user["user_password"])) {
-        $this->sendResponse(401, [
-            "status" => "error",
-            "message" => "Invalid email or password",
-        ]);
-        return;
+    if (
+      !$user ||
+      !password_verify($this->inputData["password"], $user["user_password"])
+    ) {
+      $this->sendResponse(401, [
+        "status" => "error",
+        "message" => "Invalid email or password",
+      ]);
+      return;
     }
 
     $encApi = $user["user_key"];
@@ -137,13 +143,13 @@ class UserController
 
     $email = $user["user_email"] ?? "Unknown email";
     $this->sendResponse(200, [
-        "status" => "success",
-        "message" => "Login successful",
-        "username" => $user["user_name"],
-        "api_key" => $decApi,
-        "email" => $email,
+      "status" => "success",
+      "message" => "Login successful",
+      "username" => $user["user_name"],
+      "api_key" => $decApi,
+      "email" => $email,
     ]);
-}
+  }
 
   /**
    * Regenerates the API key for the user
