@@ -6,13 +6,14 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://semver.org)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/portfolioapi)
 
- A modern REST API for managing professional portfolios
+A modern REST API for managing professional portfolios
 </div>
 
 ## Table of Contents
 - [Overview](#overview)
-- [API Endpoints](#api-endpoints)
+- [Features](#features)
 - [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
 - [Response Codes](#response-codes)
 - [Contributing](#contributing)
 
@@ -20,9 +21,91 @@
 
 PortfolioAPI powers professional portfolio websites with features like project management, skills showcase, and contact handling. Perfect for developers, designers, and creatives who want a robust backend for their portfolio.
 
+## Features
+- Project Management
+- Skills Tracking
+- Review System
+- Experience Logging
+- Contact Management
+
+## Quick Start
+
+### Authentication
+All requests require an API key in the header:
+```javascript
+headers: {
+  'Authorization': 'Bearer YOUR_API_KEY'
+}
+```
+
+### React Setup
+```bash
+# Install dependencies
+npm install @portfolioapi/react axios
+
+# Initialize in your React app
+import { PortfolioClient } from '@portfolioapi/react';
+
+const client = new PortfolioClient('YOUR_API_KEY');
+
+// Example usage
+function ProjectList() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const data = await client.projects.getAll();
+      setProjects(data);
+    };
+    fetchProjects();
+  }, []);
+}
+```
+
+### Vue Setup
+```bash
+# Install dependencies
+npm install @portfolioapi/vue axios
+
+# Initialize in your Vue app
+import { createPortfolioClient } from '@portfolioapi/vue';
+
+const client = createPortfolioClient('YOUR_API_KEY');
+
+// Example usage
+export default {
+  data() {
+    return {
+      projects: []
+    }
+  },
+  async mounted() {
+    this.projects = await client.projects.getAll();
+  }
+}
+```
+
+### Svelte Setup
+```bash
+# Install dependencies
+npm install @portfolioapi/svelte axios
+
+# Initialize in your Svelte app
+import { PortfolioClient } from '@portfolioapi/svelte';
+
+const client = new PortfolioClient('YOUR_API_KEY');
+
+// Example usage
+let projects = [];
+
+onMount(async () => {
+  projects = await client.projects.getAll();
+});
+```
+
 ## API Endpoints
 
-###  Projects
+### Projects
 Base URL: `/api/projects`
 
 | Method | Endpoint | Description |
@@ -33,21 +116,20 @@ Base URL: `/api/projects`
 | PUT | `/:id` | Update project |
 | DELETE | `/:id` | Delete project |
 
-**Example Response (200 OK):**
+**POST Request Body:**
 ```javascript
 {
-  "status": "success",
-  "data": {
-    "id": "1",
-    "title": "E-commerce Platform",
-    "description": "Modern e-commerce solution",
-    "technologies": ["React", "Node.js"],
-    "imageUrl": "https://example.com/project.jpg"
-  }
+  "title": "E-commerce Platform",
+  "description": "Modern e-commerce solution",
+  "technologies": ["React", "Node.js"],
+  "imageUrl": "https://example.com/project.jpg",
+  "startDate": "2024-01-01",
+  "endDate": "2024-12-31",
+  "status": "completed"
 }
 ```
 
-###  Skills
+### Skills
 Base URL: `/api/skills`
 
 | Method | Endpoint | Description |
@@ -58,116 +140,48 @@ Base URL: `/api/skills`
 | PUT | `/:id` | Update skill |
 | DELETE | `/:id` | Remove skill |
 
-**Example Response (201 Created):**
+**POST Request Body:**
 ```javascript
 {
-  "status": "success",
-  "data": {
-    "id": "1",
-    "name": "React",
-    "level": "Expert",
-    "category": "technical",
-    "yearsOfExperience": 5
-  }
+  "name": "React",
+  "level": "Expert",
+  "category": "technical",
+  "yearsOfExperience": 5,
+  "certifications": ["Meta React Developer"]
 }
 ```
 
-###  Reviews
-Base URL: `/api/reviews`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | List all reviews |
-| GET | `/:id` | Get review details |
-| POST | `/` | Submit review |
-| PUT | `/:id` | Update review |
-| DELETE | `/:id` | Delete review |
-
-**Example Response (200 OK):**
-```javascript
-{
-  "status": "success",
-  "data": {
-    "id": "1",
-    "clientName": "John Doe",
-    "rating": 5,
-    "review": "Outstanding work!",
-    "date": "2024-12-19"
-  }
-}
-```
-
-###  Experience
-Base URL: `/api/experience`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | List all experience |
-| GET | `/:id` | Get experience details |
-| POST | `/` | Add experience |
-| PUT | `/:id` | Update experience |
-| DELETE | `/:id` | Delete experience |
-
-**Example Response (201 Created):**
-```javascript
-{
-  "status": "success",
-  "data": {
-    "id": "1",
-    "position": "Senior Developer",
-    "company": "Tech Corp",
-    "duration": "2022-2024",
-    "highlights": ["Led team of 5", "Improved performance by 50%"]
-  }
-}
-```
-
-###  Contact
+### Contact
 Base URL: `/api/contact`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/email` | Send contact email |
-| POST | `/subscribe` | Newsletter subscription |
-| PUT | `/preferences/:id` | Update preferences |
-| DELETE | `/unsubscribe/:id` | Unsubscribe |
 
-**Example Response (200 OK):**
+**POST Request Body:**
 ```javascript
 {
-  "status": "success",
-  "data": {
-    "id": "1",
-    "message": "Email sent successfully",
-    "timestamp": "2024-12-19T10:00:00Z"
-  }
+  "name": "John Doe",
+  "email": "john@example.com",
+  "subject": "Project Inquiry",
+  "message": "I'm interested in discussing a potential project.",
+  "priority": "normal",
+  "attachments": [] // Base64 encoded files, optional
 }
 ```
 
 ## Response Codes
 
-| Code | Status | Description |
-|------|---------|------------|
-| 200 | OK | Request successful |
-| 201 | Created | Resource created |
-| 400 | Bad Request | Invalid input |
-| 401 | Unauthorized | Authentication required |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource not found |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Server Error | Internal server error |
-
-## Quick Start
-
-```javascript
-// Example: Fetch projects
-const response = await fetch('https://api.portfolio.com/api/projects', {
-  headers: {
-    'Authorization': 'Bearer YOUR_TOKEN'
-  }
-});
-const data = await response.json();
-```
+| Code | Status | Description | Example Response |
+|------|---------|------------|------------------|
+| 200 | OK | Request successful | `{"status": "success", "data": {...}}` |
+| 201 | Created | Resource created | `{"status": "success", "data": {"id": "123"}}` |
+| 400 | Bad Request | Invalid input | `{"status": "error", "message": "Invalid input data"}` |
+| 401 | Unauthorized | Authentication required | `{"status": "error", "message": "Invalid API key"}` |
+| 403 | Forbidden | Insufficient permissions | `{"status": "error", "message": "Access denied"}` |
+| 404 | Not Found | Resource not found | `{"status": "error", "message": "Resource not found"}` |
+| 429 | Too Many Requests | Rate limit exceeded | `{"status": "error", "message": "Rate limit exceeded"}` |
+| 500 | Server Error | Internal server error | `{"status": "error", "message": "Internal server error"}` |
 
 ## Contributing
 
@@ -177,8 +191,10 @@ const data = await response.json();
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 
-ðŸ“š [Documentation](https://docs.portfolioapi.com) | ðŸ› [Report
-Bug](https://github.com/yourusername/portfolioapi/issues) | ðŸ’¡ [Request
-Feature](https://github.com/yourusername/portfolioapi/issues)
+Created by the PortfolioAPI Team
