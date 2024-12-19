@@ -8,11 +8,13 @@ class ApiKeyMiddleware
 {
   private $decrypt;
   private $db;
-  private $table = "users";
+  private string $table = "users";
   private int $dailyEmailLimit = 3;
   private int $dailyRequestLimit = 7;
   private ?string $userKey = null;
-
+  private int $max_requrstPerWindowm = 10;
+  private int $timeWindow = 60;
+  private string $log = "log";
   public function __construct()
   {
     $this->decrypt = new Decrypt();
@@ -30,6 +32,11 @@ class ApiKeyMiddleware
 
     if (!$this->userKey) {
       $this->sendResponse(401, "API key required");
+    }
+
+    // Rate limiting check
+    if (!$this->AddOrRestrict()) {
+      $this->sendResponse(429, "Too many requests, please try again later");
     }
 
     // Validate and fetch the encrypted key
@@ -195,7 +202,53 @@ class ApiKeyMiddleware
     // If no valid key is found, return null
     return null;
   }
+  public function addIpAddress(): bool
+  {
+    $query = "INSERT INTO {$this->log} (ip, timestamp) 
+              VALUES (:ip, NOW())";
+    $stmt = $this->db->prepare($query);
+    $ip = $this->getIpAdress();
+    $stmt->bindParam(":ip", $ip);
+    return $stmt->execute();
+  }
+  public function isBlocked(): bool
+  {
+    $ip = $this->getIpAdress();
 
+    $currentTime = time();
+    $startTime = $currentTime - $this->timeWindow;
+
+    $query = "SELECT COUNT(*) as request_count 
+              FROM {$this->log} 
+              WHERE ip = :ip AND timestamp >= :start_time";
+    $stmt = $this->db->prepare($query);
+    $stmt->bindParam(":ip", $ip);
+    $stmt->bindParam(":start_time", $startTime);
+    $stmt->execute();
+
+    $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+    return $result["request_count"] >= $this->max_requrstPerWindowm;
+  }
+  public function AddOrRestrict(): bool
+  {
+    $isBlocked = $this->isBlocked();
+    if ($isBlocked) {
+      return false;
+    }
+    $this->addIpAddress();
+    return true;
+  }
+  public function getIpAdress(): string
+  {
+    if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+      return $_SERVER["HTTP_CLIENT_IP"];
+    } elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
+      return $_SERVER["HTTP_X_FORWARDED_FOR"];
+    } else {
+      return $_SERVER["REMOTE_ADDR"];
+    }
+  }
   /**
    * Send an HTTP response with a status code and message.
    */

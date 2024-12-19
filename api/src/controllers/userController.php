@@ -2,12 +2,14 @@
 
 use Model\User;
 use Helpers\encrypt;
+use Helpers\decrypt;
 
 class UserController
 {
   private array $inputData;
   private $userModel;
   private $encrypt;
+  private $decrypt;
 
   public function __construct()
   {
@@ -15,6 +17,7 @@ class UserController
       json_decode(file_get_contents("php://input"), true) ?? [];
     $this->userModel = new User();
     $this->encrypt = new Encrypt();
+    $this->decrypt = new Decrypt();
   }
 
   /**
@@ -107,39 +110,98 @@ class UserController
    * Handles user login
    */
   public function login(): void
+{
+    if (
+        empty($this->inputData["email"]) ||
+        empty($this->inputData["password"])
+    ) {
+        $this->sendResponse(400, [
+            "status" => "error",
+            "message" => "Email and password are required",
+        ]);
+        return;
+    }
+
+    $user = $this->userModel->getUserByEmail($this->inputData["email"]);
+
+    if (!$user || !password_verify($this->inputData["password"], $user["user_password"])) {
+        $this->sendResponse(401, [
+            "status" => "error",
+            "message" => "Invalid email or password",
+        ]);
+        return;
+    }
+
+    $encApi = $user["user_key"];
+    $decApi = $this->decrypt->DecryptKey($encApi);
+
+    $email = $user["user_email"] ?? "Unknown email";
+    $this->sendResponse(200, [
+        "status" => "success",
+        "message" => "Login successful",
+        "username" => $user["user_name"],
+        "api_key" => $decApi,
+        "email" => $email,
+    ]);
+}
+
+  /**
+   * Regenerates the API key for the user
+   */
+  public function regenerateAPIKey(): void
   {
     if (
       empty($this->inputData["email"]) ||
-      empty($this->inputData["password"])
+      empty($this->inputData["api_key"])
     ) {
       $this->sendResponse(400, [
         "status" => "error",
-        "message" => "Email and password are required",
+        "message" => "Email and current API key are required",
       ]);
       return;
     }
 
     $user = $this->userModel->getUserByEmail($this->inputData["email"]);
 
-    if (
-      !$user ||
-      !password_verify($this->inputData["password"], $user["user_password"])
-    ) {
-      $this->sendResponse(401, [
+    if (!$user) {
+      $this->sendResponse(404, [
         "status" => "error",
-        "message" => "Invalid email or password",
+        "message" => "User not found",
       ]);
       return;
     }
 
-    $this->sendResponse(200, [
-      "status" => "success",
-      "message" => "Login successful",
-      "api_key" => $user["user_key"],
-    ]);
-  }
+    $storedApiKey = $this->decrypt->DecryptKey($user["user_key"]);
+    if ($storedApiKey !== $this->inputData["api_key"]) {
+      $this->sendResponse(401, [
+        "status" => "error",
+        "message" => "Invalid current API key",
+      ]);
+      return;
+    }
 
-  /**
+    // Generate a new API key
+    $newApiKey = $this->generateApiKey();
+
+    // Update the user's API key in the database
+    $updated = $this->userModel->updateApiKey(
+      $user["id"],
+      $newApiKey["encrypted"]
+    );
+
+    if ($updated) {
+      $this->sendResponse(200, [
+        "status" => "success",
+        "message" => "API key regenerated successfully",
+        "new_api_key" => $newApiKey["raw"],
+      ]);
+    } else {
+      $this->sendResponse(500, [
+        "status" => "error",
+        "message" => "Failed to regenerate API key",
+      ]);
+    }
+  } /**
    * Sends an HTTP response with status code and data
    */
   private function sendResponse(int $statusCode, array $data): void
