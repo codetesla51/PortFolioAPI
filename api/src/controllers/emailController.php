@@ -104,12 +104,6 @@ class emailController
     }
   }
 
-  /**
-   * Send a JSON response.
-   *
-   * @param int $statusCode
-   * @param array $data
-   */
   private function sendResponse(int $statusCode, array $data): void
   {
     http_response_code($statusCode);

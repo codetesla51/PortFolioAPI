@@ -37,11 +37,10 @@ class SkillsController
       return;
     }
 
-    // Attempt to create the skill
     if ($this->skillsModel->create($data)) {
       echo json_encode(["message" => "New Skill added successfully"]);
     } else {
-      http_response_code(500); // Internal Server Error
+      http_response_code(500);
       echo json_encode(["error" => "Failed to add skill"]);
     }
   }
