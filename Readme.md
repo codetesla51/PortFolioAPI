@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://semver.org)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/portfolioapi)
 
-ðŸš€ A modern REST API for managing professional portfolios
+ A modern REST API for managing professional portfolios
 </div>
 
 ## Table of Contents
@@ -22,7 +22,7 @@ PortfolioAPI powers professional portfolio websites with features like project m
 
 ## API Endpoints
 
-### ðŸŽ¯ Projects
+###  Projects
 Base URL: `/api/projects`
 
 | Method | Endpoint | Description |
@@ -47,7 +47,7 @@ Base URL: `/api/projects`
 }
 ```
 
-### ðŸ’« Skills
+###  Skills
 Base URL: `/api/skills`
 
 | Method | Endpoint | Description |
@@ -72,7 +72,7 @@ Base URL: `/api/skills`
 }
 ```
 
-### â­ Reviews
+###  Reviews
 Base URL: `/api/reviews`
 
 | Method | Endpoint | Description |
@@ -97,7 +97,7 @@ Base URL: `/api/reviews`
 }
 ```
 
-### ðŸ’¼ Experience
+###  Experience
 Base URL: `/api/experience`
 
 | Method | Endpoint | Description |
@@ -122,7 +122,7 @@ Base URL: `/api/experience`
 }
 ```
 
-### ðŸ“§ Contact
+###  Contact
 Base URL: `/api/contact`
 
 | Method | Endpoint | Description |
