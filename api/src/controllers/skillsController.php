@@ -96,7 +96,7 @@ class SkillsController
     if ($this->skillsModel->delete($id)) {
       echo json_encode(["message" => "skill deleted successfully"]);
     } else {
-      http_response_code(500); // Internal Server Error
+      http_response_code(500); 
       echo json_encode(["error" => "Failed to delete skill"]);
     }
   }
