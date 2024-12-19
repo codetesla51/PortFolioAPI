@@ -27,29 +27,54 @@ class ApiKeyMiddleware
   public function handle(bool $isAdmin = false): ?string
   {
     $this->table = $isAdmin ? "admins" : "users";
-    $headers = getallheaders();
-    $this->userKey = $headers["API-Key"] ?? null;
+
+    $headers = $this->getHeaders();
+    $this->userKey = $headers["api-key"] ?? null;
 
     if (!$this->userKey) {
-      $this->sendResponse(401, "API key required");
+      $this->sendResponse(401, [
+        "status" => "error",
+        "message" => "API key required",
+      ]);
     }
 
-    // Rate limiting check
     if (!$this->AddOrRestrict()) {
-      $this->sendResponse(429, "Too many requests, please try again later");
+      $this->sendResponse(429, [
+        "status" => "error",
+        "message" => "Too many requests, please try again later",
+      ]);
     }
 
-    // Validate and fetch the encrypted key
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse($isAdmin ? 401 : 403, "Invalid API key");
+      $this->sendResponse($isAdmin ? 401 : 403, [
+        "status" => "error",
+        "message" => "Invalid API key",
+      ]);
     }
 
-    // Return the user key if everything is valid
     return $this->userKey;
   }
 
+  /**
+   * Fallback method to get headers for all server types
+   */
+  private function getHeaders(): array
+  {
+    if (function_exists("getallheaders")) {
+      return array_change_key_case(getallheaders(), CASE_LOWER);
+    }
+
+    $headers = [];
+    foreach ($_SERVER as $key => $value) {
+      if (strpos($key, "HTTP_") === 0) {
+        $headerName = strtolower(str_replace("_", "-", substr($key, 5)));
+        $headers[$headerName] = $value;
+      }
+    }
+    return $headers;
+  }
   /**
    * Validate the API key against the database.
    */
