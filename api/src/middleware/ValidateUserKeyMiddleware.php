@@ -25,28 +25,38 @@ class ApiKeyMiddleware
    * Main handler for API key validation and request limits.
    */
   public function handle(bool $isAdmin = false): ?string
-  {
+{
+    ob_start();
+
     $this->table = $isAdmin ? "admins" : "users";
 
     $headers = $this->getHeaders();
     $this->userKey = $headers["api-key"] ?? null;
 
     if (!$this->userKey) {
-      $this->sendResponse(401, "API key required");
+        $this->sendResponse(401, "API key required");
+        ob_end_clean(); 
+        return null; 
     }
 
     if (!$this->AddOrRestrict()) {
-      $this->sendResponse(429, "Too many requests, please try again later");
+        $this->sendResponse(429, "Too many requests, please try again later");
+        ob_end_clean();
+        return null;
     }
 
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse($isAdmin ? 401 : 403, "Unauthorized");
+        $this->sendResponse($isAdmin ? 401 : 403, "Unauthorized");
+        ob_end_clean(); 
+        return null; 
     }
 
+    ob_end_clean();
+
     return $this->userKey;
-  }
+}
 
   /**
    * Fallback method to get headers for all server types
