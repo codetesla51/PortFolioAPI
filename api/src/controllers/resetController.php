@@ -5,16 +5,16 @@ use DB\DB;
 class ResetController
 {
   private $decrypt;
-  private $db;
+  private $DB;
   private $table = "admins";
   private $userTable = "users";
   private $logTable = "log";
   private $middleware;
 
-  public function __construct()
+  public function __construct(DB $DB)
   {
     $this->decrypt = new Decrypt();
-    $this->db = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
     $this->middleware = new Middleware\ApiKeyMiddleware();
   }
 
@@ -30,7 +30,7 @@ class ResetController
 
     try {
       $sql = "UPDATE {$this->userTable} SET normalRequestToday = 0, emailsentToday = 0";
-      $stmt = $this->db->prepare($sql);
+      $stmt = $this->DB->prepare($sql);
       $stmt->execute();
 
       if ($stmt->rowCount() > 0) {
@@ -65,7 +65,7 @@ class ResetController
 
     try {
       $sql = "DELETE FROM {$this->logTable}";
-      $stmt = $this->db->prepare($sql);
+      $stmt = $this->DB->prepare($sql);
       $stmt->execute();
 
       if ($stmt->rowCount() > 0) {

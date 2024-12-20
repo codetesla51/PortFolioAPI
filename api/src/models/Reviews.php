@@ -11,7 +11,7 @@ class Reviews
 
   public function __construct()
   {
-    $this->DB = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
   }
 
   public function create(array $data): bool

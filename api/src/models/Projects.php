@@ -5,12 +5,12 @@ use PDO;
 class Projects
 {
   private $table = "projects";
-  private $DB;
+  private PDO $DB;
   private $UserController;
 
   public function __construct()
   {
-    $this->DB = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
   }
 
   public function create(array $data): bool

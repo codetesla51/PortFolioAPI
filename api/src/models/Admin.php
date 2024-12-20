@@ -9,7 +9,7 @@ class Admin
 
   public function __construct()
   {
-    $this->DB = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
   }
 
   public function getAdminByUsername(string $username): ?array

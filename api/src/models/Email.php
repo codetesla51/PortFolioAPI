@@ -8,7 +8,7 @@ class Email
   private PDO $DB;
   public function __construct()
   {
-    $this->DB = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
   }
   public function ValidateEmailFromRequest(string $email): bool
   {

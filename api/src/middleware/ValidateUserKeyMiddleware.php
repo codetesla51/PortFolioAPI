@@ -7,18 +7,18 @@ use DB\DB;
 class ApiKeyMiddleware
 {
   private $decrypt;
-  private $db;
+  private $DB;
   private string $table = "users";
   private int $dailyEmailLimit = 50;
   private int $dailyRequestLimit = 100;
   private ?string $userKey = null;
-  private int $max_requrstPerWindowm = 100;
+  private int $max_requrstPerWindowm = 8;
   private int $timeWindow = 60;
   private string $log = "log";
   public function __construct()
   {
     $this->decrypt = new Decrypt();
-    $this->db = (new DB())->connect();
+    $this->DB = DB::getInstance()->connect();
   }
 
   /**
@@ -53,7 +53,9 @@ class ApiKeyMiddleware
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse($isAdmin ? 401 : 403, "Unauthorized access. Invalid or expired API key.",
+      $this->sendResponse(
+        $isAdmin ? 401 : 403,
+        "Unauthorized access. Invalid or expired API key."
       );
     }
 
@@ -105,7 +107,7 @@ class ApiKeyMiddleware
   {
     try {
       $query = "SELECT user_key FROM {$this->table} WHERE user_key IS NOT NULL";
-      $stmt = $this->db->prepare($query);
+      $stmt = $this->DB->prepare($query);
       $stmt->execute();
       return $stmt->fetchAll(\PDO::FETCH_COLUMN);
     } catch (\PDOException $e) {
@@ -127,7 +129,7 @@ class ApiKeyMiddleware
       try {
         if ($this->decrypt->DecryptKey($encryptedKey) === $this->userKey) {
           $query = "SELECT * FROM {$this->table} WHERE user_key = :key";
-          $stmt = $this->db->prepare($query);
+          $stmt = $this->DB->prepare($query);
           $stmt->bindParam(":key", $encryptedKey, \PDO::PARAM_STR);
           $stmt->execute();
           return $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -197,7 +199,7 @@ class ApiKeyMiddleware
 
       // Update the field in the database
       $query = "UPDATE {$this->table} SET {$field} = {$field} + 1 WHERE user_key = :key";
-      $stmt = $this->db->prepare($query);
+      $stmt = $this->DB->prepare($query);
       $stmt->bindParam(":key", $encryptedKey, \PDO::PARAM_STR);
 
       if (!$stmt->execute()) {
@@ -234,7 +236,7 @@ class ApiKeyMiddleware
   {
     $query = "INSERT INTO {$this->log} (ip, timestamp) 
               VALUES (:ip, NOW())";
-    $stmt = $this->db->prepare($query);
+    $stmt = $this->DB->prepare($query);
     $ip = $this->getIpAdress();
     $stmt->bindParam(":ip", $ip);
     return $stmt->execute();
@@ -249,7 +251,7 @@ class ApiKeyMiddleware
     $query = "SELECT COUNT(*) as request_count 
               FROM {$this->log} 
               WHERE ip = :ip AND timestamp <= FROM_UNIXTIME(:start_time)";
-    $stmt = $this->db->prepare($query);
+    $stmt = $this->DB->prepare($query);
     $stmt->bindParam(":ip", $ip);
     $stmt->bindParam(":start_time", $startTime);
     $stmt->execute();
