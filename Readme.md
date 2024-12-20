@@ -39,8 +39,103 @@ PortfolioAPI is a comprehensive backend solution for professional portfolio webs
 
 - **Contact Management**: Manage incoming communications using customizable email templates.
 
-## API Resources
+## Getting Started
 
+### Authentication
+
+All API requests require authentication via an API key. Obtain your key through
+our [API Registration Page](https://portfolio-api-gui.vercel.app/).
+
+Include your API key in request headers:
+
+```javascript
+headers: {
+Authorization: Bearer YOUR_API_KEY
+  
+}
+```
+### API HOST  
+
+The base URL for the Portfolio API is:  
+```bash  
+https://api-portfolio-v1.vercel.app/  
+```
+### Framework Integration
+
+#### React Integration
+
+```javascript
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+
+function ProjectList() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get('https://api.example.com/projects', {
+          headers: {
+            'Authorization': 'Bearer YOUR_API_KEY',
+          },
+        });
+        setProjects(response.data);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+    fetchProjects();
+  }, []);
+}
+```
+
+#### Vue Integration
+
+```javascript
+export default {
+  data() {
+    return {
+      projects: []
+    }
+  },
+  async mounted() {
+    try {
+      const response = await axios.get('https://api.example.com/projects', {
+        headers: {
+          'Authorization': 'Bearer YOUR_API_KEY',
+        },
+      });
+      this.projects = response.data;
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  }
+}
+```
+
+#### Svelte Integration
+
+```javascript
+import axios from 'axios';
+import { onMount } from 'svelte';
+
+let projects = [];
+
+onMount(async () => {
+  try {
+    const response = await axios.get('https://api.example.com/projects', {
+      headers: {
+        'Authorization': 'Bearer YOUR_API_KEY',
+      },
+    });
+    projects = response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+  }
+});
+```
+
+## API Resources
 > ### Note on Pagination with Limit and Offset
 > 
 > You can paginate your GET requests by adding `limit` and `offset` as query parameters in the URL. 
