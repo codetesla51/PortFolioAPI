@@ -32,32 +32,17 @@ class ApiKeyMiddleware
     $this->userKey = $headers["api-key"] ?? null;
 
     if (!$this->userKey) {
-      $this->sendResponse(
-        401,
-        json_encode([
-          "status" => "error",
-          "message" => "API key required",
-        ])
-      );
+      $this->sendResponse(401, "API key required");
     }
 
     if (!$this->AddOrRestrict()) {
-      $this->sendResponse(429, [
-        "status" => "error",
-        "message" => "Too many requests, please try again later",
-      ]);
+      $this->sendResponse(429, "Too many requests, please try again later");
     }
 
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse(
-        $isAdmin ? 401 : 403,
-        json_encode([
-          "status" => "error",
-          "message" => "Unauthorized",
-        ])
-      );
+      $this->sendResponse($isAdmin ? 401 : 403, "Unauthorized");
     }
 
     return $this->userKey;
@@ -243,16 +228,15 @@ class ApiKeyMiddleware
     return $stmt->execute();
   }
   public function isBlocked(): bool
-{
+  {
     $ip = $this->getIpAdress();
 
     $currentTime = time();
     $startTime = $currentTime - $this->timeWindow;
 
-    // Use FROM_UNIXTIME to convert the Unix timestamp to a MySQL DATETIME
     $query = "SELECT COUNT(*) as request_count 
               FROM {$this->log} 
-              WHERE ip = :ip AND timestamp >= FROM_UNIXTIME(:start_time)";
+              WHERE ip = :ip AND timestamp <= FROM_UNIXTIME(:start_time)";
     $stmt = $this->db->prepare($query);
     $stmt->bindParam(":ip", $ip);
     $stmt->bindParam(":start_time", $startTime);
@@ -261,7 +245,8 @@ class ApiKeyMiddleware
     $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
     return $result["request_count"] >= $this->max_requrstPerWindowm;
-}
+  }
+
   public function AddOrRestrict(): bool
   {
     $isBlocked = $this->isBlocked();
