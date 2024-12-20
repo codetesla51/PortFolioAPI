@@ -29,12 +29,15 @@ PortfolioAPI is a comprehensive backend solution for professional portfolio webs
 
 ## Key Features
 
-- **Project Management**: Showcase and manage portfolio projects
-- **Skills Tracking**: Document and update professional skills
-- **Review System**: Collect and display testimonials
-- **Experience Logging**: Track professional experience
-- **Contact Management**: Handle incoming communications
+- **Project Management**: Add and manage portfolio projects programmatically, including titles, descriptions, images, and links.
 
+- **Skills Tracking**: Track and update professional skills in your portfolio via API.
+
+- **Review & Documentation System**: Add and display testimonials or reviews to enhance your portfolio.
+
+- **Experience Logging**: Log professional experience, including company name, role, start and end dates, and job description.
+
+- **Contact Management**: Manage incoming communications using customizable email templates.
 ## Getting Started
 
 ### Authentication
@@ -132,7 +135,20 @@ onMount(async () => {
 ```
 
 ## API Resources
-
+> ### Note on Pagination with Limit and Offset
+> 
+> You can paginate your GET requests by adding `limit` and `offset` as query parameters in the URL. 
+> 
+> - **limit**: Defines the number of results to be returned in a single request.
+> - **offset**: Defines the number of records to skip before starting to return results.
+> 
+> For example, to fetch the first 5 records, you can use the following URL:
+> 
+> ```
+> https://api.example.com/projects?limit=5&offset=0
+> ```
+> 
+> You can modify the `limit` and `offset` values to control the data you receive, making it easier to handle large datasets efficiently.
 ### Projects
 
 Manage portfolio projects with full CRUD operations.
@@ -241,21 +257,39 @@ Handle incoming communications through a templated email system.
 **Base URL**: `/api/email`
 
 **Key Features**:
-- Pre-built email templates
+- Pre-built email templates (5 in total: 2 light, 2 dark, 1 default)
 - Secure email receiving
 - Customizable recipient configuration
 
+**Email Template Types**:
+- **Default Template** (Template 1): The default layout used for emails.
+- **Light Templates** (Templates 2 and 3): Light-themed templates designed for clean and minimalist emails.
+- **Dark Templates** (Templates 4 and 5): Dark-themed templates suitable for modern, sleek email designs.
+
+Each template is available for use based on your preference:
+- Template 1 is the default and is applied if no other template is specified.
+- Templates 2 and 3 are light-themed, ideal for simple and bright email content.
+- Templates 4 and 5 are dark-themed, designed for a more professional and modern look.
+
+**Additional Information**:
+- **Sender Email**: The email you want to receive incoming emails with (i.e., the "from" email address).
+- **Body**: The body of the email is optional. If no custom body is provided, the default body will be used. If you wish to send a personalized message, you can specify a custom body in the request.
+
+If you do not specify a template, **Template 1 (default)** will be applied automatically, and you can include a custom body if desired.
+
 **Request Body Example**:
 ```javascript
+
 {
-  "recipient": "Example@gmail.com",
+  "recipient": "test@gmail.com",
   "subject": "Test Email",
   "sender_email": "sender@example.com",
   "sender_name": "Sender Name",
-  "body": "This is a test email body"
+  "body": "This is a custom email body", // only add if you want custom body
+  "template_id": 1
 }
-```
 
+```
 ## Response Codes
 
 | Code | Status | Description | Example Response |
