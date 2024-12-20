@@ -91,7 +91,7 @@ class ProjectController
   public function destroy(int $id): void
   {
     $userKey = $this->middleware->handle();
-    if ($this->ProjectModel->delete($id)) {
+    if ($this->ProjectModel->delete($id,$userKey)) {
       $this->sendResponse(200, ["message" => "Project deleted successfully"]);
     } else {
       $this->sendResponse(500, ["error" => "Failed to delete project"]);

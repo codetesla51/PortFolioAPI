@@ -72,7 +72,7 @@ class SkillsController
     $userKey = $this->middleware->handle();
     $limit = isset($_GET["limit"]) ? (int) $_GET["limit"] : 10;
     $offset = isset($_GET["offset"]) ? (int) $_GET["offset"] : 0;
-    $projects = $this->skillsModel->findAll($userKey,$limit,$offset);
+    $projects = $this->skillsModel->findAll($userKey, $limit, $offset);
     echo json_encode($projects);
   }
 
@@ -94,7 +94,7 @@ class SkillsController
   {
     $userKey = $this->middleware->handle();
 
-    if ($this->skillsModel->delete($id)) {
+    if ($this->skillsModel->delete($id,$userKey)) {
       echo json_encode(["message" => "skill deleted successfully"]);
     } else {
       http_response_code(500);
