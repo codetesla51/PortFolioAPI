@@ -81,12 +81,20 @@ class Projects
     return true;
   }
 
-  public function fetchByUserKey(string $userKey): array
-  {
-    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key";
+  public function findAll(
+    string $userKey,
+    int $limit = 10,
+    int $offset = 0
+  ): array {
+    $limit = $limit > 0 ? $limit : 10;
+    $offset = $offset >= 0 ? $offset : 0;
+
+    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key ORDER BY project_id DESC LIMIT :limit OFFSET :offset";
 
     $stmt = $this->DB->prepare($query);
     $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
+    $stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
+    $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -97,7 +105,8 @@ class Projects
 
   public function fetchId(int $projectId, string $userKey): array|false
   {
-    $query = "SELECT * FROM {$this->table} WHERE project_id = :project_id AND user_key = :user_key";
+    $query = "SELECT * FROM {$this->table} WHERE project_id = :project_id AND
+    user_key = :user_key ORDER BY project_id DESC";
 
     $stmt = $this->DB->prepare($query);
     $stmt->bindParam(":project_id", $projectId, PDO::PARAM_INT);
@@ -110,7 +119,7 @@ class Projects
   }
 
   public function delete(int $projectId, string $userKey): bool
-{
+  {
     $query = "DELETE FROM {$this->table} WHERE project_id = :project_id AND user_key = :user_key";
 
     $stmt = $this->DB->prepare($query);
@@ -118,6 +127,5 @@ class Projects
     $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
 
     return $stmt->execute();
-}
-
+  }
 }

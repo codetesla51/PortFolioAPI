@@ -77,11 +77,19 @@ class Skills
     return false;
   }
 
-  public function findAll(string $userKey): array
-  {
-    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key";
+  public function findAll(
+    string $userKey,
+    int $limit = 10,
+    int $offset = 0
+  ): array {
+    $limit = $limit > 0 ? $limit : 10;
+    $offset = $offset >= 0 ? $offset : 0;
+    $query = "SELECT * FROM {$this->table} WHERE user_key = :user_key ORDER BY
+    skill_id DESC LIMIT :limit OFFSET :offset";
     $stmt = $this->DB->prepare($query);
     $stmt->bindParam(":user_key", $userKey, PDO::PARAM_STR);
+$stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
+    $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
       return $stmt->fetchAll(PDO::FETCH_ASSOC);

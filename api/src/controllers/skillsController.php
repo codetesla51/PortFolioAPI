@@ -70,8 +70,9 @@ class SkillsController
   public function index(): void
   {
     $userKey = $this->middleware->handle();
-
-    $projects = $this->skillsModel->findAll($userKey);
+    $limit = isset($_GET["limit"]) ? (int) $_GET["limit"] : 10;
+    $offset = isset($_GET["offset"]) ? (int) $_GET["offset"] : 0;
+    $projects = $this->skillsModel->findAll($userKey,$limit,$offset);
     echo json_encode($projects);
   }
 
@@ -96,7 +97,7 @@ class SkillsController
     if ($this->skillsModel->delete($id)) {
       echo json_encode(["message" => "skill deleted successfully"]);
     } else {
-      http_response_code(500); 
+      http_response_code(500);
       echo json_encode(["error" => "Failed to delete skill"]);
     }
   }

@@ -16,9 +16,9 @@ class ProjectController
   {
     $userKey = $this->middleware->handle();
     if (!$this->middleware->isUnderDailyRequestLimit()) {
-      $this->sendResponse(
-        429 , ["error" => "Request limit reached. Please try again tomorrow."]
-      );
+      $this->sendResponse(429, [
+        "error" => "Request limit reached. Please try again tomorrow.",
+      ]);
     }
 
     $this->middleware->incrementRequestCount();
@@ -71,7 +71,9 @@ class ProjectController
   public function index(): void
   {
     $userKey = $this->middleware->handle();
-    $projects = $this->ProjectModel->fetchByUserKey($userKey);
+    $limit = isset($_GET["limit"]) ? (int) $_GET["limit"] : 10;
+    $offset = isset($_GET["offset"]) ? (int) $_GET["offset"] : 0;
+    $projects = $this->ProjectModel->findAll($userKey, $limit, $offset);
     $this->sendResponse(200, $projects);
   }
 

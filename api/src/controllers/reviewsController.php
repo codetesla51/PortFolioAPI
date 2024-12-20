@@ -33,7 +33,9 @@ class ReviewsController
     // Validate rating
     if ($data["rating"] < 0 || $data["rating"] > 5) {
       http_response_code(400); // Bad Request
-      echo json_encode(["error" => "Invalid rating value. It must be between 0 and 5."]);
+      echo json_encode([
+        "error" => "Invalid rating value. It must be between 0 and 5.",
+      ]);
       return;
     }
 
@@ -55,7 +57,9 @@ class ReviewsController
 
     if ($data["rating"] < 0 || $data["rating"] > 5) {
       http_response_code(400); // Bad Request
-      echo json_encode(["error" => "Invalid rating value. It must be between 0 and 5."]);
+      echo json_encode([
+        "error" => "Invalid rating value. It must be between 0 and 5.",
+      ]);
       return;
     }
 
@@ -70,7 +74,9 @@ class ReviewsController
   public function index(): void
   {
     $userKey = $this->middleware->handle();
-    $reviews = $this->reviewsModel->findAll($userKey);
+    $limit = isset($_GET["limit"]) ? (int) $_GET["limit"] : 10;
+    $offset = isset($_GET["offset"]) ? (int) $_GET["offset"] : 0;
+    $reviews = $this->reviewsModel->findAll($userKey,$limit,$offset);
     echo json_encode($reviews);
   }
 

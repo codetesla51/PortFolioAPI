@@ -86,13 +86,16 @@ class ExperienceController
   public function index(): void
   {
     $userKey = $this->middleware->handle();
-    $experiences = $this->experienceModel->findAll($userKey);
+    $limit = isset($_GET["limit"]) ? (int) $_GET["limit"] : 10;
+    $offset = isset($_GET["offset"]) ? (int) $_GET["offset"] : 0;
+    $experiences = $this->experienceModel->findAll($userKey,$limit,$offset);
     echo json_encode($experiences);
   }
 
   public function show(int $id): void
   {
     $userKey = $this->middleware->handle();
+
     $experience = $this->experienceModel->findById($id, $userKey);
 
     if ($experience) {
