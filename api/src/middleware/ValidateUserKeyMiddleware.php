@@ -243,15 +243,16 @@ class ApiKeyMiddleware
     return $stmt->execute();
   }
   public function isBlocked(): bool
-  {
+{
     $ip = $this->getIpAdress();
 
     $currentTime = time();
     $startTime = $currentTime - $this->timeWindow;
 
+    // Use FROM_UNIXTIME to convert the Unix timestamp to a MySQL DATETIME
     $query = "SELECT COUNT(*) as request_count 
               FROM {$this->log} 
-              WHERE ip = :ip AND timestamp >= :start_time";
+              WHERE ip = :ip AND timestamp >= FROM_UNIXTIME(:start_time)";
     $stmt = $this->db->prepare($query);
     $stmt->bindParam(":ip", $ip);
     $stmt->bindParam(":start_time", $startTime);
@@ -260,7 +261,7 @@ class ApiKeyMiddleware
     $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
     return $result["request_count"] >= $this->max_requrstPerWindowm;
-  }
+}
   public function AddOrRestrict(): bool
   {
     $isBlocked = $this->isBlocked();
