@@ -46,7 +46,7 @@ Include your API key in request headers:
 
 ```javascript
 headers: {
-  'Authorization': 'Bearer YOUR_API_KEY'
+  'API-Key': 'YOUR_API_KEY'
 }
 ```
 ### API HOST  

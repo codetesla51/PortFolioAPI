@@ -1,5 +1,5 @@
 <?php
-use Helpers\decrypt;
+use Helpers\Decrypt;
 use DB\DB;
 
 class ResetController
@@ -53,6 +53,7 @@ class ResetController
       return false;
     }
   }
+
   public function deleteAllRecords(): bool
   {
     $userKey = $this->middleware->handle(true);
@@ -67,12 +68,21 @@ class ResetController
       $stmt = $this->db->prepare($sql);
       $stmt->execute();
 
-      http_response_code(200);
-      echo json_encode(["message" => "All records deleted successfully."]);
-      return true;
-    } catch (Exception $e) {
+      if ($stmt->rowCount() > 0) {
+        http_response_code(200);
+        echo json_encode(["message" => "All records deleted successfully."]);
+        return true;
+      } else {
+        http_response_code(204);
+        echo json_encode(["message" => "No records to delete."]);
+        return false;
+      }
+    } catch (\PDOException $e) {
       http_response_code(500);
-      echo json_encode(["message" => "Internal Server Error."]);
+      echo json_encode([
+        "message" => "Internal Server Error.",
+        "error" => $e->getMessage(),
+      ]);
       error_log($e->getMessage());
       return false;
     }
