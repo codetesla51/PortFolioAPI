@@ -18,14 +18,12 @@ require_once "src/controllers/experienceController.php";
 require_once "src/controllers/emailController.php";
 require_once "src/controllers/userController.php";
 $routes = require "src/routes/api.php";
-if (file_exists(__DIR__ . '/.env')) {
-    $dotenv = Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
+if (file_exists(__DIR__ . "/.env")) {
+  $dotenv = Dotenv::createImmutable(__DIR__);
+  $dotenv->load();
 }
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $requestUri = strtok($_SERVER["REQUEST_URI"], "?");
-
-error_log("Requested Method: $requestMethod, Requested URI: $requestUri");
 
 if (isset($routes[$requestMethod])) {
   foreach ($routes[$requestMethod] as $route => $handler) {
@@ -33,10 +31,6 @@ if (isset($routes[$requestMethod])) {
     if (preg_match("#^" . $pattern . "$#", $requestUri, $matches)) {
       array_shift($matches);
       [$controller, $method] = explode("@", $handler);
-
-      error_log(
-        "Matched Route: $route, Controller: $controller, Method: $method"
-      );
 
       if (class_exists($controller)) {
         $controllerInstance = new $controller();

@@ -39,7 +39,6 @@ function myAutoloader($class)
     }
   }
 
-  echo "File not found: $class\n";
 }
 
 spl_autoload_register("myAutoloader");

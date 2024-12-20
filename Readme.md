@@ -202,7 +202,7 @@ Manage testimonials and feedback.
 **Request Body Example**:
 ```javascript
 {
-reviewer_name": "John Doe", 
+  "reviewer_name": "John Doe", 
   "rating": 4, 
   "review_text": "Great product, highly recommend it."
   "reviewer_job_title": "Indie Hacker",
