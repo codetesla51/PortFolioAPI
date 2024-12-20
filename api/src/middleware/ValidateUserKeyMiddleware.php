@@ -38,30 +38,23 @@ class ApiKeyMiddleware
     }
 
     if (!$this->userKey) {
-      $this->sendResponse(401, [
-        "status" => "error",
-        "code" => 401,
-        "message" => "Authorization header with a Bearer token is required.",
-      ]);
+      $this->sendResponse(
+        401,
+        "Authorization header with a Bearer token is
+      required."
+      );
     }
 
     if (!$this->AddOrRestrict()) {
-      header("Retry-After: 300"); 
-      $this->sendResponse(429, [
-        "status" => "error",
-        "code" => 429,
-        "message" => "Too many requests, please try again later.",
-      ]);
+      header("Retry-After: 300");
+      $this->sendResponse(429, "Too many requests, please try again later.");
     }
 
     $encryptedKey = $this->getEncryptedKeyByDecryptedKey();
 
     if (!$encryptedKey) {
-      $this->sendResponse($isAdmin ? 401 : 403, [
-        "status" => "error",
-        "code" => $isAdmin ? 401 : 403,
-        "message" => "Unauthorized access. Invalid or expired API key.",
-      ]);
+      $this->sendResponse($isAdmin ? 401 : 403, "Unauthorized access. Invalid or expired API key.",
+      );
     }
 
     return $this->userKey;
