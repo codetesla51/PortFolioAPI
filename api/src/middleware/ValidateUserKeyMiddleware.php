@@ -9,8 +9,8 @@ class ApiKeyMiddleware
   private $decrypt;
   private $db;
   private string $table = "users";
-  private int $dailyEmailLimit = 3;
-  private int $dailyRequestLimit = 7;
+  private int $dailyEmailLimit = 20;
+  private int $dailyRequestLimit = 100;
   private ?string $userKey = null;
   private int $max_requrstPerWindowm = 100;
   private int $timeWindow = 60;

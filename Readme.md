@@ -31,31 +31,41 @@ PortfolioAPI powers professional portfolio websites with features like project m
 ## Quick Start
 
 ### Authentication
-All requests require an API key in the header:
+All requests require an API key in the header. You can get your API key by registering on our [API Registration Page](https://example.com/register).
+
+To authenticate your requests, include the API key in the request header like this:
+
 ```javascript
 headers: {
   'Authorization': 'Bearer YOUR_API_KEY'
 }
 ```
+Replace ```YOUR_API_KEY``` with the API key you received after registration. Make sure to keep your API key secure and avoid exposing it in public repositories or client-side code.
 
 ### React Setup
-```bash
-# Install dependencies
-npm install @portfolioapi/react axios
+```javascript
+// Initialize in your React app
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 
-# Initialize in your React app
-import { PortfolioClient } from '@portfolioapi/react';
+const apiClient = axios.create({
+  baseURL: 'https://api.example.com', // Replace with your API base URL
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+  },
+});
 
-const client = new PortfolioClient('YOUR_API_KEY');
-
-// Example usage
 function ProjectList() {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const data = await client.projects.getAll();
-      setProjects(data);
+      try {
+        const response = await axios.get('/projects'); 
+        setProjects(response.data); 
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
     };
     fetchProjects();
   }, []);
@@ -63,16 +73,10 @@ function ProjectList() {
 ```
 
 ### Vue Setup
-```bash
-# Install dependencies
-npm install @portfolioapi/vue axios
+```javascript
+// Initialize in your Vue app
+import axios from 'axios';
 
-# Initialize in your Vue app
-import { createPortfolioClient } from '@portfolioapi/vue';
-
-const client = createPortfolioClient('YOUR_API_KEY');
-
-// Example usage
 export default {
   data() {
     return {
@@ -80,7 +84,16 @@ export default {
     }
   },
   async mounted() {
-    this.projects = await client.projects.getAll();
+    try {
+      const response = await axios.get('https://api.example.com/projects', {
+        headers: {
+          'Authorization': 'Bearer YOUR_API_KEY',
+        },
+      }); // API call using axios
+      this.projects = response.data;  // Set the fetched data
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
   }
 }
 ```
@@ -118,14 +131,17 @@ Base URL: `/api/projects`
 
 **POST Request Body:**
 ```javascript
-{
-  "title": "E-commerce Platform",
-  "description": "Modern e-commerce solution",
-  "technologies": ["React", "Node.js"],
-  "imageUrl": "https://example.com/project.jpg",
-  "startDate": "2024-01-01",
-  "endDate": "2024-12-31",
-  "status": "completed"
+
+  {
+  "title": "My New Project", 
+  "image": "https://example.com/image.jpg", 
+  "description": "This is a description of my project.", 
+  "tech_stack": ["PHP", "MySQL", "JavaScript"], 
+  "start_date": "2024-01-01", 
+  "finish_date": "2024-12-31", 
+  "github_link": "https://github.com/user/project", 
+  "live_link": "https://project.example.com"
+
 }
 ```
 
@@ -143,16 +159,57 @@ Base URL: `/api/skills`
 **POST Request Body:**
 ```javascript
 {
-  "name": "React",
-  "level": "Expert",
-  "category": "technical",
-  "yearsOfExperience": 5,
-  "certifications": ["Meta React Developer"]
+  "skill_name": "PHP Programming", 
+  "experience_level": "Intermediate", 
+  "years_of_experience": 3, 
+  "description": "Experienced in PHP for backend web development."
 }
 ```
+### Reviews
+Base URL: `/api/reviews`
 
-### Contact
-Base URL: `/api/contact`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | List all skills |
+| GET | `/:category` | Get skills by category |
+| POST | `/` | Add new skill |
+| PUT | `/:id` | Update skill |
+| DELETE | `/:id` | Remove skill |
+
+**POST Request Body:**
+```javascript
+{
+  "reviewer_name": "John Doe", 
+  "rating": 4, 
+  "review_text": "Great product, highly recommend it."
+}
+```
+### Experience
+Base URL: `/api/experience`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | List all skills |
+| GET | `/:category` | Get skills by category |
+| POST | `/` | Add new skill |
+| PUT | `/:id` | Update skill |
+| DELETE | `/:id` | Remove skill |
+
+**POST Request Body:**
+```javascript
+
+  {
+  "company_name": "Tech Corp",
+  "role": "Software Engineer",
+  "start_date": "2022-01-01",
+  "end_date": "2024-12-01",
+  "description": "Worked on developing web applications."
+}
+
+```
+
+### ReceivingEmails
+Base URL: `/api/email`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -161,12 +218,11 @@ Base URL: `/api/contact`
 **POST Request Body:**
 ```javascript
 {
-  "name": "John Doe",
-  "email": "john@example.com",
-  "subject": "Project Inquiry",
-  "message": "I'm interested in discussing a potential project.",
-  "priority": "normal",
-  "attachments": [] // Base64 encoded files, optional
+  "recipient": "example@domain.com",
+  "subject": "Portfolio Inquiry",
+  "sender_email": "sender@domain.com",
+  "sender_name": "John Doe",
+  "template_id": 1
 }
 ```
 
