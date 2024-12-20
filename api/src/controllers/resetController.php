@@ -1,5 +1,5 @@
 <?php
-use Helpers\Decrypt;
+use Helpers\decrypt;
 use DB\DB;
 
 class ResetController
