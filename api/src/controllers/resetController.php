@@ -11,7 +11,7 @@ class ResetController
   private $logTable = "log";
   private $middleware;
 
-  public function __construct(DB $DB)
+  public function __construct()
   {
     $this->decrypt = new Decrypt();
     $this->DB = DB::getInstance()->connect();

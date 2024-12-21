@@ -12,8 +12,8 @@ class ApiKeyMiddleware
   private int $dailyEmailLimit = 50;
   private int $dailyRequestLimit = 100;
   private ?string $userKey = null;
-  private int $max_requrstPerWindowm = 8;
-  private int $timeWindow = 60;
+  private int $max_requrstPerWindowm = 500;
+  private int $timeWindow = 3600;
   private string $log = "log";
   public function __construct()
   {

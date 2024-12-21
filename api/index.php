@@ -17,6 +17,7 @@ require_once "src/controllers/reviewsController.php";
 require_once "src/controllers/experienceController.php";
 require_once "src/controllers/emailController.php";
 require_once "src/controllers/userController.php";
+require_once "src/controllers/adminController.php";
 $routes = require "src/routes/api.php";
 if (file_exists(__DIR__ . "/.env")) {
   $dotenv = Dotenv::createImmutable(__DIR__);

@@ -9,6 +9,7 @@ return [
     "/reviews/{id}" => "reviewsController@show",
     "/experinece{id}" => "experienceController@show",
     "/experinece" => "experienceController@index",
+    "/count" => "adminController@Count",
   ],
   "POST" => [
     "/projects" => "projectController@store",
