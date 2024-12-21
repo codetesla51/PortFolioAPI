@@ -5,7 +5,7 @@ use DB\DB;
 
 class Admin
 {
-  private  $DB;
+  public $DB;
 
   private $userTable = "users";
   private $logTable = "log";

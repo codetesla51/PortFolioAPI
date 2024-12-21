@@ -6,14 +6,12 @@ use Helpers\decrypt;
 use DB\DB;
 class AdminController
 {
-  private  $DB;
   private $adminModel;
   private $encrypt;
   private $decrypt;
   private $middleware;
   public function __construct()
   {
-    $this->DB = DB::getInstance()->connect();
     $this->adminModel = new Admin();
     $this->encrypt = new Encrypt();
     $this->decrypt = new Decrypt();
