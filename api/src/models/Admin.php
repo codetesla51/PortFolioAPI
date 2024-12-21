@@ -44,7 +44,7 @@ class Admin
       "total_users" => "SELECT COUNT(*) as total_users FROM {$this->userTable}",
       "total_emails_sent" => "SELECT SUM(emailsentToday) as total_emails FROM {$this->userTable}",
       "total_requests" => "SELECT SUM(normalRequestToday) as total_requests FROM {$this->userTable}",
-      "log_requests" => "SELECT SUM(request_count) as log_requests FROM {$this->logTable}",
+      "log_requests" => "SELECT COUNT(ip) as log_requests FROM {$this->logTable}",
       "total_projects" => "SELECT COUNT(*) as total_projects FROM {$this->projectTable}",
       "total_skills" => "SELECT COUNT(*) as total_skills FROM {$this->skillsTable}",
       "total_reviews" => "SELECT COUNT(*) as total_reviews FROM {$this->reviewsTable}",
