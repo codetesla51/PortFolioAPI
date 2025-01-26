@@ -1,44 +1,54 @@
 <?php
 function myAutoloader($class)
 {
-  $baseDirs = [
-    "DB" => __DIR__ . "/config/",
-    "Controller" => __DIR__ . "/src/controllers/",
-    "Helpers" => __DIR__ . "/src/helpers/",
-    "Model" => __DIR__ . "/src/models/",
-    "Decrypt" => __DIR__ . "/src/helpers/",
-    "Middleware" => __DIR__ . "/src/middleware/",
-    "" => __DIR__ . "/src/",
-  ];
+    // Define base directories with more robust path handling
+    $baseDirs = [
+        "DB" => __DIR__ . DIRECTORY_SEPARATOR . "config",
+        "Controller" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "controllers",
+        "Helpers" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "helpers",
+        "Model" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "models",
+        "Decrypt" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "helpers",
+        "Middleware" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "middleware",
+        "" => __DIR__ . DIRECTORY_SEPARATOR . "src",
+    ];
 
-  $specialCases = [
-    "Middleware\\ApiKeyMiddleware" =>
-      __DIR__ . "/src/middleware/ValidateUserKeyMiddleware.php",
-  ];
+    // Special cases with precise namespace mapping
+    $specialCases = [
+        "Middleware\\ApiKeyMiddleware" => __DIR__ . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "middleware" . DIRECTORY_SEPARATOR . "ValidateUserKeyMiddleware.php",
+    ];
 
-  if (isset($specialCases[$class])) {
-    $file = $specialCases[$class];
-    if (file_exists($file)) {
-      require $file;
-      return;
-    } else {
-      return;
+    // Handle special cases first with early return
+    if (isset($specialCases[$class])) {
+        $file = $specialCases[$class];
+        return file_exists($file) ? require $file : false;
     }
-  }
 
-  foreach ($baseDirs as $namespace => $dir) {
-    if ($namespace === "" || strpos($class, $namespace . "\\") === 0) {
-      $class = str_replace($namespace . "\\", "", $class);
-      $class = str_replace("\\", DIRECTORY_SEPARATOR, $class);
-      $file = $dir . $class . ".php";
+    // Normalize class name for matching
+    $normalizedClass = str_replace("\\", DIRECTORY_SEPARATOR, $class);
 
-      if (file_exists($file)) {
-        require $file;
-        return;
-      }
+    // Iterate through base directories
+    foreach ($baseDirs as $namespace => $dir) {
+        // Check if the class belongs to this namespace
+        if ($namespace === "" || strpos($class, $namespace . "\\") === 0) {
+            // Remove namespace prefix
+            $relativeClass = $namespace === "" 
+                ? $normalizedClass 
+                : substr($normalizedClass, strlen($namespace . "\\"));
+
+            // Construct full file path
+            $file = $dir . DIRECTORY_SEPARATOR . $relativeClass . ".php";
+
+            // Attempt to load file
+            if (file_exists($file)) {
+                require $file;
+                return true;
+            }
+        }
     }
-  }
 
+    // Optional: Log or handle cases where file is not found
+    return false;
 }
 
+// Register the autoloader
 spl_autoload_register("myAutoloader");
